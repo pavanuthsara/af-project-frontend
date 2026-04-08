@@ -35,7 +35,7 @@ export default function Login() {
         <div style={{ textAlign: 'center', marginBottom: '2rem' }}>
           <div style={{ fontSize: '3rem', marginBottom: '0.5rem' }}>🌿</div>
           <h1 style={{ fontSize: '1.5rem', fontWeight: 800, marginBottom: '0.25rem' }}>Welcome back</h1>
-          <p style={{ color: 'var(--text-muted)', fontSize: '0.875rem' }}>Sign in to your EcoWaste account</p>
+          <p style={{ color: 'var(--text-muted)', fontSize: '0.875rem' }}>Sign in to your BinWise account</p>
         </div>
 
         {error && <div className="error-msg" style={{ marginBottom: '1rem' }}>{error}</div>}

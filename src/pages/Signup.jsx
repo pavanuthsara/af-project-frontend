@@ -32,7 +32,7 @@ export default function Signup() {
         <div style={{ textAlign: 'center', marginBottom: '2rem' }}>
           <div style={{ fontSize: '3rem', marginBottom: '0.5rem' }}>🌱</div>
           <h1 style={{ fontSize: '1.5rem', fontWeight: 800, marginBottom: '0.25rem' }}>Create account</h1>
-          <p style={{ color: 'var(--text-muted)', fontSize: '0.875rem' }}>Join the EcoWaste community</p>
+          <p style={{ color: 'var(--text-muted)', fontSize: '0.875rem' }}>Join the BinWise community</p>
         </div>
 
         {error && <div className="error-msg" style={{ marginBottom: '1rem' }}>{error}</div>}

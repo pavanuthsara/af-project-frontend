@@ -27,7 +27,7 @@ export default function Landing() {
       }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '1.5rem', fontWeight: 800, cursor: 'pointer' }} onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}>
           <span style={{ fontSize: '2rem' }}>♻️</span>
-          <span style={{ color: '#4ade80' }}>EcoWaste</span>
+          <span style={{ color: '#4ade80' }}>BinWise</span>
         </div>
 
         <div style={{ display: 'flex', gap: '2.5rem', alignItems: 'center' }}>
@@ -74,7 +74,7 @@ export default function Landing() {
         </div>
 
         {/* Hero Image Placeholder */}
-       
+
       </section>
 
       {/* Stats Bar */}
@@ -119,7 +119,7 @@ export default function Landing() {
         </div>
       </section>
 
-      {/* Why EcoWaste Section */}
+      {/* Why BinWise Section */}
       <section style={{ padding: '5rem 2rem', maxWidth: '1200px', margin: '0 auto' }}>
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '3rem', alignItems: 'center' }}>
           <div>
@@ -128,7 +128,7 @@ export default function Landing() {
               Why choose the<br />green path?
             </h2>
             <p style={{ fontSize: '1rem', color: '#d1fae5', lineHeight: 1.8, marginBottom: '2rem' }}>
-              We believe that small individual changes, when aggregated, create massive global impact. That's why we built EcoWaste to make those shifts as simple and rewarding as possible.
+              We believe that small individual changes, when aggregated, create massive global impact. That's why we built BinWise to make those shifts as simple and rewarding as possible.
             </p>
           </div>
 
@@ -163,7 +163,7 @@ export default function Landing() {
 
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '2rem' }}>
           {[
-            { name: 'Sarah Jenkins', role: 'Eco Scientist', quote: 'EcoWaste changed how I see my kitchen. The AI trained me to just look in the bin.', stars: 5 },
+            { name: 'Sarah Jenkins', role: 'Eco Scientist', quote: 'BinWise changed how I see my kitchen. The AI trained me to just look in the bin.', stars: 5 },
             { name: 'Milan Patel', role: 'Freelancer', quote: 'The impact tracking is so motivating. Seeing my personal CO₂ savings just gets me into a visual forest in the app is incredible.', stars: 5 },
             { name: 'Ava Lee', role: 'Artsist & Educator', quote: 'A must-have for every household. My kids love the eco-quizzes and it\'s actually teaching them responsibility for the Earth.', stars: 5 }
           ].map((testimonial, i) => (
@@ -213,7 +213,7 @@ export default function Landing() {
         <div style={{ maxWidth: '1200px', margin: '0 auto', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '2rem' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: '#86efac', fontSize: '1.1rem', fontWeight: 700 }}>
             <span style={{ fontSize: '1.5rem' }}>♻️</span>
-            EcoWaste
+            BinWise
           </div>
           <div style={{ display: 'flex', gap: '3rem', flexWrap: 'wrap' }}>
             {['PRIVACY', 'TERMS', 'CONTACT', 'BLOG'].map((link) => (
@@ -223,7 +223,7 @@ export default function Landing() {
             ))}
           </div>
           <div style={{ color: '#86efac', fontSize: '0.8rem', opacity: 0.6, width: '100%', textAlign: 'center', marginTop: '1rem', borderTop: '1px solid rgba(74, 222, 128, 0.1)', paddingTop: '1rem' }}>
-            © 2025 ECOWASTE. LUXURIOUS CONSERVATION.
+            © 2026 BinWise.
           </div>
         </div>
       </footer>
