@@ -9,9 +9,9 @@ import {
   addQuestion, updateQuestion, deleteQuestion,
 } from '../api/quizApi';
 
-/* ─────────────────────────────────────────
+/* â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
    Helpers
-───────────────────────────────────────── */
+â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 function extractArray(raw) {
   if (Array.isArray(raw)) return raw;
   if (Array.isArray(raw?.data)) return raw.data;
@@ -23,16 +23,16 @@ const BLANK_Q = { questionText: '', options: ['', '', ''], correctAnswer: '', ex
 const DIFFICULTIES = ['Beginner', 'Intermediate', 'Advanced'];
 const DIFF_COLOR = { Beginner: 'badge-green', Intermediate: 'badge-yellow', Advanced: 'badge-red' };
 
-/* ─────────────────────────────────────────
+/* â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
    Small reusable components
-───────────────────────────────────────── */
+â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 function Modal({ title, wide, onClose, children }) {
   return (
     <div className="modal-overlay" onClick={e => e.target === e.currentTarget && onClose()}>
       <div className="modal-box" style={{ maxWidth: wide ? 780 : 540 }}>
         <div className="flex-between" style={{ marginBottom: '1.5rem' }}>
           <h2 style={{ fontWeight: 700, fontSize: '1.15rem' }}>{title}</h2>
-          <button className="btn btn-secondary btn-sm" onClick={onClose}>✕</button>
+          <button className="btn btn-secondary btn-sm" onClick={onClose}>X</button>
         </div>
         {children}
       </div>
@@ -46,9 +46,9 @@ function ErrMsg({ msg }) {
     : null;
 }
 
-/* ─────────────────────────────────────────
+/* â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
    Question Form (used in add & edit)
-───────────────────────────────────────── */
+â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 function QuestionForm({ initial, quizId, onSaved, onCancel }) {
   const [form, setForm] = useState(initial || BLANK_Q);
   const [saving, setSaving] = useState(false);
@@ -141,7 +141,7 @@ function QuestionForm({ initial, quizId, onSaved, onCancel }) {
               />
               {form.options.length > 2 && (
                 <button type="button" className="btn btn-danger btn-sm" onClick={() => removeOption(i)}
-                  style={{ padding: '0.3rem 0.5rem' }}>✕</button>
+                  style={{ padding: '0.3rem 0.5rem' }}>Remove</button>
               )}
             </div>
           ))}
@@ -156,7 +156,7 @@ function QuestionForm({ initial, quizId, onSaved, onCancel }) {
           value={form.correctAnswer}
           onChange={e => setField('correctAnswer', e.target.value)}
         >
-          <option value="">— Select the correct answer —</option>
+          <option value="">Select the correct answer</option>
           {filledOptions.map((o, i) => (
             <option key={i} value={o}>{String.fromCharCode(65 + i)}. {o}</option>
           ))}
@@ -179,7 +179,7 @@ function QuestionForm({ initial, quizId, onSaved, onCancel }) {
       <div style={{ display: 'flex', gap: '0.75rem', marginTop: '0.25rem' }}>
         <button className="btn btn-primary" onClick={handleSave} disabled={saving}
           style={{ flex: 1, justifyContent: 'center' }}>
-          {saving ? <span className="spinner" /> : initial?._id ? '💾 Update Question' : '➕ Add Question'}
+          {saving ? <span className="spinner" /> : initial?._id ? 'Update Question' : 'Add Question'}
         </button>
         <button className="btn btn-secondary" onClick={onCancel}>Cancel</button>
       </div>
@@ -187,9 +187,9 @@ function QuestionForm({ initial, quizId, onSaved, onCancel }) {
   );
 }
 
-/* ─────────────────────────────────────────
+/* â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
    Question Manager Modal (per quiz)
-───────────────────────────────────────── */
+â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 function QuestionManagerModal({ quiz, onClose, onQuizUpdated }) {
   const [questions, setQuestions] = useState([]);
   const [loadingQs, setLoadingQs] = useState(true);
@@ -198,7 +198,6 @@ function QuestionManagerModal({ quiz, onClose, onQuizUpdated }) {
 
   // Load questions on mount via playQuiz (list endpoint doesn't embed questions)
   useEffect(() => {
-    setLoadingQs(true);
     playQuiz(quiz._id)
       .then(r => {
         const d = r.data;
@@ -252,7 +251,7 @@ function QuestionManagerModal({ quiz, onClose, onQuizUpdated }) {
     <Modal
       title={
         <span>
-          ❓ Questions —{' '}
+          Questions for{' '}
           <span style={{ color: 'var(--accent-green)' }}>{quiz.title}</span>
         </span>
       }
@@ -273,7 +272,7 @@ function QuestionManagerModal({ quiz, onClose, onQuizUpdated }) {
         </span>
         {mode === 'list' && (
           <button className="btn btn-primary btn-sm" onClick={() => setMode('add')}>
-            ➕ Add Question
+            Add Question
           </button>
         )}
       </div>
@@ -281,7 +280,7 @@ function QuestionManagerModal({ quiz, onClose, onQuizUpdated }) {
       {/* Add form */}
       {mode === 'add' && (
         <div className="card" style={{ marginBottom: '1.25rem', border: '1px solid rgba(34,197,94,0.25)', background: 'rgba(34,197,94,0.04)' }}>
-          <div style={{ fontWeight: 700, marginBottom: '1rem', color: 'var(--accent-green)' }}>➕ New Question</div>
+          <div style={{ fontWeight: 700, marginBottom: '1rem', color: 'var(--accent-green)' }}>New Question</div>
           <QuestionForm
             quizId={quiz._id}
             onSaved={handleSaved}
@@ -293,7 +292,7 @@ function QuestionManagerModal({ quiz, onClose, onQuizUpdated }) {
       {/* Edit form for a specific question */}
       {mode?.edit && (
         <div className="card" style={{ marginBottom: '1.25rem', border: '1px solid rgba(20,184,166,0.3)', background: 'rgba(20,184,166,0.04)' }}>
-          <div style={{ fontWeight: 700, marginBottom: '1rem', color: 'var(--accent-teal)' }}>✏️ Edit Question</div>
+          <div style={{ fontWeight: 700, marginBottom: '1rem', color: 'var(--accent-teal)' }}>Edit Question</div>
           <QuestionForm
             initial={mode.edit}
             quizId={quiz._id}
@@ -310,7 +309,7 @@ function QuestionManagerModal({ quiz, onClose, onQuizUpdated }) {
         </div>
       ) : questions.length === 0 ? (
         <div className="empty-state" style={{ padding: '2.5rem 1rem' }}>
-          <div className="empty-state-icon">❓</div>
+          <div className="empty-state-icon">?</div>
           <p>No questions yet.</p>
           <p style={{ fontSize: '0.85rem', marginTop: '0.25rem' }}>Click "Add Question" above to get started.</p>
         </div>
@@ -332,13 +331,13 @@ function QuestionManagerModal({ quiz, onClose, onQuizUpdated }) {
                     className="btn btn-secondary btn-sm"
                     onClick={() => setMode({ edit: q })}
                     disabled={mode?.edit?._id === q._id}
-                  >✏️ Edit</button>
+                  >Edit</button>
                   <button
                     className="btn btn-danger btn-sm"
                     onClick={() => handleDelete(q._id)}
                     disabled={deleting === q._id}
                   >
-                    {deleting === q._id ? <span className="spinner" style={{ width: 14, height: 14 }} /> : '🗑'}
+                    {deleting === q._id ? <span className="spinner" style={{ width: 14, height: 14 }} /> : 'Delete'}
                   </button>
                 </div>
               </div>
@@ -354,7 +353,7 @@ function QuestionManagerModal({ quiz, onClose, onQuizUpdated }) {
                       border: `1px solid ${isCorrect ? 'rgba(34,197,94,0.4)' : 'var(--border)'}`,
                       color: isCorrect ? 'var(--accent-green)' : 'var(--text-secondary)',
                     }}>
-                      {isCorrect ? '✓ ' : ''}{String.fromCharCode(65 + i)}. {opt}
+                      {isCorrect ? 'Correct: ' : ''}{String.fromCharCode(65 + i)}. {opt}
                     </span>
                   );
                 })}
@@ -367,7 +366,7 @@ function QuestionManagerModal({ quiz, onClose, onQuizUpdated }) {
                   borderTop: '1px solid var(--border)', paddingTop: '0.5rem', marginTop: '0.5rem',
                   lineHeight: 1.5,
                 }}>
-                  💬 {q.explanation}
+                  Note: {q.explanation}
                 </div>
               )}
             </div>
@@ -378,29 +377,29 @@ function QuestionManagerModal({ quiz, onClose, onQuizUpdated }) {
   );
 }
 
-/* ─────────────────────────────────────────
+/* â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
    Main AdminPanel
-───────────────────────────────────────── */
+â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 const SECTIONS = ['Categories', 'Items', 'Quizzes'];
 
 export default function AdminPanel() {
   const [section, setSection] = useState('Categories');
 
-  /* ── Categories ── */
+  /* Categories */
   const [cats, setCats] = useState([]);
   const [catModal, setCatModal] = useState(null);
   const [catForm, setCatForm] = useState({ name: '', description: '', recyclable: true, hazardous: false, compostable: false });
   const [catSaving, setCatSaving] = useState(false);
   const [catErr, setCatErr] = useState('');
 
-  /* ── Items ── */
+  /* Items */
   const [items, setItems] = useState([]);
   const [itemModal, setItemModal] = useState(null);
   const [itemForm, setItemForm] = useState({ name: '', description: '', category: '', recyclable: true, hazardous: false, compostable: false });
   const [itemSaving, setItemSaving] = useState(false);
   const [itemErr, setItemErr] = useState('');
 
-  /* ── Quizzes ── */
+  /* Quizzes */
   const [quizzes, setQuizzes] = useState([]);
   const [quizLoading, setQuizLoading] = useState(true);
   const [quizModal, setQuizModal] = useState(false);
@@ -409,7 +408,7 @@ export default function AdminPanel() {
   const [quizErr, setQuizErr] = useState('');
   const [qManager, setQManager] = useState(null); // quiz for question manager
 
-  /* ── Loaders ── */
+  /* Loaders */
   const loadCats = () => getCategories({ limit: 100 }).then(r => setCats(r.data.data || []));
   const loadItems = () => getItems({ limit: 100 }).then(r => setItems(r.data.data || []));
   const loadQuizzes = () => {
@@ -419,9 +418,21 @@ export default function AdminPanel() {
       .finally(() => setQuizLoading(false));
   };
 
-  useEffect(() => { loadCats(); loadItems(); loadQuizzes(); }, []);
+  useEffect(() => {
+    Promise.all([
+      getCategories({ limit: 100 }),
+      getItems({ limit: 100 }),
+      getQuizzes(),
+    ]).then(([catsRes, itemsRes, quizzesRes]) => {
+      setCats(catsRes.data.data || []);
+      setItems(itemsRes.data.data || []);
+      setQuizzes(extractArray(quizzesRes.data));
+    }).finally(() => {
+      setQuizLoading(false);
+    });
+  }, []);
 
-  /* ── Category CRUD ── */
+  /* Category CRUD */
   const openNewCat = () => { setCatForm({ name: '', description: '', recyclable: true, hazardous: false, compostable: false }); setCatModal('new'); setCatErr(''); };
   const openEditCat = c => { setCatForm({ name: c.name, description: c.description, recyclable: c.recyclable, hazardous: c.hazardous, compostable: c.compostable }); setCatModal(c); setCatErr(''); };
   const saveCat = async () => {
@@ -437,7 +448,7 @@ export default function AdminPanel() {
     await deleteCategory(id); loadCats();
   };
 
-  /* ── Item CRUD ── */
+  /* Item CRUD */
   const openNewItem = () => { setItemForm({ name: '', description: '', category: cats[0]?._id || '', recyclable: true, hazardous: false, compostable: false }); setItemModal('new'); setItemErr(''); };
   const openEditItem = item => { setItemForm({ name: item.name, description: item.description, category: item.category?._id || '', recyclable: item.recyclable, hazardous: item.hazardous, compostable: item.compostable }); setItemModal(item); setItemErr(''); };
   const saveItem = async () => {
@@ -453,7 +464,7 @@ export default function AdminPanel() {
     await deleteItem(id); loadItems();
   };
 
-  /* ── Quiz CRUD ── */
+  /* Quiz CRUD */
   const saveQuiz = async () => {
     setQuizSaving(true); setQuizErr('');
     try {
@@ -467,17 +478,17 @@ export default function AdminPanel() {
   const onQuizzesUpdated = useCallback(updatedQuiz => {
     setQuizzes(prev => prev.map(q => q._id === updatedQuiz._id ? updatedQuiz : q));
 
-    if (qManager && qManager._id == updatedQuiz._id) {
+    if (qManager && qManager._id === updatedQuiz._id) {
       setQManager(updatedQuiz);
     }
   }, [qManager]);
 
-  /* ─── Render ─── */
+  /* Render */
   return (
     <div>
       {/* Page header */}
       <div className="page-header">
-        <h1 className="page-title">⚙️ Admin Panel</h1>
+        <h1 className="page-title">Admin Panel</h1>
         <p className="page-subtitle">Manage waste data, quizzes, and questions</p>
       </div>
 
@@ -489,19 +500,19 @@ export default function AdminPanel() {
             className={`btn ${section === s ? 'btn-primary' : 'btn-secondary'}`}
             onClick={() => setSection(s)}
           >
-            {s === 'Categories' ? '🗂' : s === 'Items' ? '🔬' : '🎓'} {s}
+            {s}
           </button>
         ))}
       </div>
 
-      {/* ════════════════════════════════════
+      {/* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
           CATEGORIES
-      ════════════════════════════════════ */}
+      â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */}
       {section === 'Categories' && (
         <>
           <div className="flex-between" style={{ marginBottom: '1.5rem' }}>
             <h2 style={{ fontWeight: 700 }}>Waste Categories <span style={{ color: 'var(--text-muted)', fontWeight: 400, fontSize: '0.9rem' }}>({cats.length})</span></h2>
-            <button className="btn btn-primary" onClick={openNewCat}>➕ New Category</button>
+            <button className="btn btn-primary" onClick={openNewCat}>New Category</button>
           </div>
           <div className="table-wrapper">
             <table>
@@ -510,16 +521,16 @@ export default function AdminPanel() {
                 {cats.map(c => (
                   <tr key={c._id}>
                     <td style={{ fontWeight: 600 }}>{c.name}</td>
-                    <td style={{ color: 'var(--text-muted)', fontSize: '0.85rem' }}>{c.description?.slice(0, 70)}{c.description?.length > 70 ? '…' : ''}</td>
+                    <td style={{ color: 'var(--text-muted)', fontSize: '0.85rem' }}>{c.description?.slice(0, 70)}{c.description?.length > 70 ? '...' : ''}</td>
                     <td>
-                      {c.recyclable && <span className="badge badge-green" style={{ marginRight: 4 }}>♻️</span>}
-                      {c.hazardous && <span className="badge badge-red" style={{ marginRight: 4 }}>☣️</span>}
-                      {c.compostable && <span className="badge badge-lime">🌱</span>}
+                      {c.recyclable && <span className="badge badge-green" style={{ marginRight: 4 }}>Recyclable</span>}
+                      {c.hazardous && <span className="badge badge-red" style={{ marginRight: 4 }}>Hazardous</span>}
+                      {c.compostable && <span className="badge badge-lime">Compostable</span>}
                     </td>
                     <td>
                       <div style={{ display: 'flex', gap: '0.5rem' }}>
-                        <button className="btn btn-secondary btn-sm" onClick={() => openEditCat(c)}>✏️ Edit</button>
-                        <button className="btn btn-danger btn-sm" onClick={() => deleteCat(c._id)}>🗑</button>
+                        <button className="btn btn-secondary btn-sm" onClick={() => openEditCat(c)}>Edit</button>
+                        <button className="btn btn-danger btn-sm" onClick={() => deleteCat(c._id)}>Delete</button>
                       </div>
                     </td>
                   </tr>
@@ -531,14 +542,14 @@ export default function AdminPanel() {
         </>
       )}
 
-      {/* ════════════════════════════════════
+      {/* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
           ITEMS
-      ════════════════════════════════════ */}
+      â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */}
       {section === 'Items' && (
         <>
           <div className="flex-between" style={{ marginBottom: '1.5rem' }}>
             <h2 style={{ fontWeight: 700 }}>Waste Items <span style={{ color: 'var(--text-muted)', fontWeight: 400, fontSize: '0.9rem' }}>({items.length})</span></h2>
-            <button className="btn btn-primary" onClick={openNewItem}>➕ New Item</button>
+            <button className="btn btn-primary" onClick={openNewItem}>New Item</button>
           </div>
           <div className="table-wrapper">
             <table>
@@ -550,16 +561,16 @@ export default function AdminPanel() {
                       <div style={{ fontWeight: 600 }}>{item.name}</div>
                       <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>{item.description?.slice(0, 50)}</div>
                     </td>
-                    <td><span className="badge badge-teal">{item.category?.name || '—'}</span></td>
+                    <td><span className="badge badge-teal">{item.category?.name || '-'}</span></td>
                     <td>
-                      {item.recyclable && <span className="badge badge-green" style={{ marginRight: 4 }}>♻️</span>}
-                      {item.hazardous && <span className="badge badge-red" style={{ marginRight: 4 }}>☣️</span>}
-                      {item.compostable && <span className="badge badge-lime">🌱</span>}
+                      {item.recyclable && <span className="badge badge-green" style={{ marginRight: 4 }}>Recyclable</span>}
+                      {item.hazardous && <span className="badge badge-red" style={{ marginRight: 4 }}>Hazardous</span>}
+                      {item.compostable && <span className="badge badge-lime">Compostable</span>}
                     </td>
                     <td>
                       <div style={{ display: 'flex', gap: '0.5rem' }}>
-                        <button className="btn btn-secondary btn-sm" onClick={() => openEditItem(item)}>✏️ Edit</button>
-                        <button className="btn btn-danger btn-sm" onClick={() => deleteIt(item._id)}>🗑</button>
+                        <button className="btn btn-secondary btn-sm" onClick={() => openEditItem(item)}>Edit</button>
+                        <button className="btn btn-danger btn-sm" onClick={() => deleteIt(item._id)}>Delete</button>
                       </div>
                     </td>
                   </tr>
@@ -571,22 +582,22 @@ export default function AdminPanel() {
         </>
       )}
 
-      {/* ════════════════════════════════════
+      {/* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
           QUIZZES
-      ════════════════════════════════════ */}
+      â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */}
       {section === 'Quizzes' && (
         <>
           <div className="flex-between" style={{ marginBottom: '1.5rem' }}>
             <h2 style={{ fontWeight: 700 }}>Quizzes <span style={{ color: 'var(--text-muted)', fontWeight: 400, fontSize: '0.9rem' }}>({quizzes.length})</span></h2>
             <button className="btn btn-primary" onClick={() => { setQuizForm({ title: '', description: '', difficulty: 'Beginner', passingScore: 60 }); setQuizModal(true); setQuizErr(''); }}>
-              ➕ Create Quiz
+              Create Quiz
             </button>
           </div>
 
           {quizLoading ? (
             <div className="flex-center" style={{ height: 200 }}><span className="spinner" style={{ width: 36, height: 36 }} /></div>
           ) : quizzes.length === 0 ? (
-            <div className="empty-state"><div className="empty-state-icon">🎓</div><p>No quizzes yet. Create one!</p></div>
+            <div className="empty-state"><div className="empty-state-icon">Q</div><p>No quizzes yet. Create one!</p></div>
           ) : (
             <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
               {quizzes.map(q => {
@@ -604,9 +615,9 @@ export default function AdminPanel() {
                           <div style={{ fontSize: '0.85rem', color: 'var(--text-muted)', marginBottom: '0.5rem' }}>{q.description}</div>
                         )}
                         <div style={{ display: 'flex', gap: '1rem', fontSize: '0.8rem', color: 'var(--text-secondary)' }}>
-                          <span>🎯 Pass at {q.passingScore}%</span>
+                          <span>Pass at {q.passingScore}%</span>
                           <span style={{ color: qCount === 0 ? 'var(--danger)' : 'var(--accent-green)', fontWeight: 600 }}>
-                            ❓ {qCount} question{qCount !== 1 ? 's' : ''}
+                            {qCount} question{qCount !== 1 ? 's' : ''}
                           </span>
                         </div>
                       </div>
@@ -617,7 +628,7 @@ export default function AdminPanel() {
                         onClick={() => setQManager(q)}
                         style={{ whiteSpace: 'nowrap' }}
                       >
-                        ❓ Manage Questions
+                        Manage Questions
                       </button>
                     </div>
 
@@ -640,13 +651,13 @@ export default function AdminPanel() {
                                   padding: '0.1rem 0.5rem', borderRadius: 20, fontSize: '0.72rem',
                                   background: 'rgba(34,197,94,0.1)', color: 'var(--accent-green)',
                                   border: '1px solid rgba(34,197,94,0.25)', whiteSpace: 'nowrap',
-                                }}>✓ {qq.correctAnswer}</span>
+                                }}>Correct: {qq.correctAnswer}</span>
                               )}
                             </div>
                           ))}
                           {qCount > 3 && (
                             <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)', paddingLeft: 24 }}>
-                              +{qCount - 3} more question{qCount - 3 !== 1 ? 's' : ''} — click "Manage Questions" to see all
+                              +{qCount - 3} more question{qCount - 3 !== 1 ? 's' : ''} - click "Manage Questions" to see all
                             </div>
                           )}
                         </div>
@@ -660,14 +671,14 @@ export default function AdminPanel() {
         </>
       )}
 
-      {/* ════════════════════════════════════
+      {/* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
           MODALS
-      ════════════════════════════════════ */}
+      â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */}
 
       {/* Question Manager Modal */}
       {qManager && (
         <QuestionManagerModal
-          quiz={qManager}
+          key={qManager._id}
           onClose={() => setQManager(null)}
           onQuizUpdated={onQuizzesUpdated}
         />
@@ -675,7 +686,7 @@ export default function AdminPanel() {
 
       {/* Create Quiz modal */}
       {quizModal && (
-        <Modal title="🎓 Create New Quiz" onClose={() => setQuizModal(false)}>
+        <Modal title="Create New Quiz" onClose={() => setQuizModal(false)}>
           <ErrMsg msg={quizErr} />
           <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
             <div className="form-group">
@@ -699,7 +710,7 @@ export default function AdminPanel() {
               </div>
             </div>
             <button className="btn btn-primary" onClick={saveQuiz} disabled={quizSaving} style={{ justifyContent: 'center' }}>
-              {quizSaving ? <span className="spinner" /> : '✅ Create Quiz'}
+              {quizSaving ? <span className="spinner" /> : 'Create Quiz'}
             </button>
           </div>
         </Modal>
@@ -721,7 +732,7 @@ export default function AdminPanel() {
               </label>
             ))}
             <button className="btn btn-primary" onClick={saveCat} disabled={catSaving} style={{ justifyContent: 'center' }}>
-              {catSaving ? <span className="spinner" /> : catModal === 'new' ? '✅ Create' : '💾 Update'}
+              {catSaving ? <span className="spinner" /> : catModal === 'new' ? 'Create' : 'Update'}
             </button>
           </div>
         </Modal>
@@ -747,7 +758,7 @@ export default function AdminPanel() {
               </label>
             ))}
             <button className="btn btn-primary" onClick={saveItem} disabled={itemSaving} style={{ justifyContent: 'center' }}>
-              {itemSaving ? <span className="spinner" /> : itemModal === 'new' ? '✅ Create' : '💾 Update'}
+              {itemSaving ? <span className="spinner" /> : itemModal === 'new' ? 'Create' : 'Update'}
             </button>
           </div>
         </Modal>
