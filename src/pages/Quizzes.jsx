@@ -54,7 +54,10 @@ export default function Quizzes() {
     try {
       await createQuiz({ ...quizForm, passingScore: Number(quizForm.passingScore) });
       setQuizModal(false); load();
-    } catch (e) { setErr(e.response?.data?.message || 'Error'); }
+    } catch (e) {
+      const errorMsg = e.response?.data?.error || e.response?.data?.message || e.message || 'Error creating quiz';
+      setErr(errorMsg);
+    }
     setSaving(false);
   };
 
