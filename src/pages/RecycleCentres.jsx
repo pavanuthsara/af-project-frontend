@@ -72,7 +72,7 @@ export default function RecycleCentres() {
     setCForm({
       name: c.name, address: c.address,
       location: c.location || { type: 'Point', coordinates: [0, 0] },
-      acceptedWasteTypes: c.acceptedWasteTypes || [],
+      acceptedWasteTypes: uniqueWasteTypes(c.acceptedWasteTypes),
       operatingHours: c.operatingHours || '',
       maxCapacityKg: c.maxCapacityKg || '',
       currentLoadKg: c.currentLoadKg || '',
@@ -106,6 +106,7 @@ export default function RecycleCentres() {
 
   const capacityPct = (c) => c.maxCapacityKg > 0 ? Math.round((c.currentLoadKg / c.maxCapacityKg) * 100) : 0;
   const capColor = (pct) => pct >= 90 ? 'var(--danger)' : pct >= 70 ? 'var(--warning)' : 'var(--accent-green)';
+  const uniqueWasteTypes = (types = []) => [...new Set(types.filter(Boolean))];
 
   return (
     <div>
@@ -144,6 +145,7 @@ export default function RecycleCentres() {
         <div className="grid-2">
           {centres.map(c => {
             const pct = capacityPct(c);
+            const wasteTypes = uniqueWasteTypes(c.acceptedWasteTypes);
             return (
               <div key={c.id} className="card" style={{ cursor: 'pointer', border: selected?.id === c.id ? '1px solid var(--accent-green)' : undefined }}
                 onClick={() => setSelected(s => s?.id === c.id ? null : c)}>
@@ -162,7 +164,7 @@ export default function RecycleCentres() {
                   </div>
                 )}
                 <div style={{ display: 'flex', gap: '0.3rem', flexWrap: 'wrap', marginBottom: '0.75rem' }}>
-                  {c.acceptedWasteTypes?.map(wt => <span key={wt} className="badge badge-teal">{wt}</span>)}
+                  {wasteTypes.map((wt, index) => <span key={`${c.id || c._id || c.name}-${wt}-${index}`} className="badge badge-teal">{wt}</span>)}
                 </div>
                 {/* Capacity bar */}
                 <div>
