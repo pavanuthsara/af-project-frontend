@@ -213,24 +213,34 @@ function QuestionManagerModal({ quiz, onClose, onQuizUpdated }) {
   // Called by QuestionForm after a successful add or update
   const handleSaved = useCallback((savedQuestion) => {
     if (!savedQuestion) { setMode('list'); return; }
+
     setQuestions(prev => {
       const exists = prev.find(q => q._id === savedQuestion._id);
-      if (exists) {
-        // update existing
-        return prev.map(q => q._id === savedQuestion._id ? savedQuestion : q);
-      }
-      // new question — append
-      return [...prev, savedQuestion];
+      const updatedQuestions = exists
+        ? prev.map(q => q._id === savedQuestion._id ? savedQuestion : q)
+        : [...prev, savedQuestion];
+      // Notify the parent of the new state
+      onQuizUpdated({ ...quiz, questions: updatedQuestions });
+
+      return updatedQuestions;
     });
     setMode('list');
-  }, []);
+  }, [quiz, onQuizUpdated]);
 
   const handleDelete = async (qid) => {
     if (!window.confirm('Delete this question?')) return;
     setDeleting(qid);
     try {
       await deleteQuestion(qid);
-      setQuestions(prev => prev.filter(q => q._id !== qid));
+
+      setQuestions(prev => {
+        const updatedQuestions = prev.filter(q => q._id !== qid);
+
+        // Notify the parent of the new state
+        onQuizUpdated({ ...quiz, questions: updatedQuestions });
+
+        return updatedQuestions;
+      });
     } catch { /* silent */ }
     setDeleting(null);
   };
@@ -452,10 +462,10 @@ export default function AdminPanel() {
 
   /* called by QuestionManagerModal after any mutation */
   const onQuizzesUpdated = useCallback(updatedList => {
-    setQuizzes(updatedList);
-    if (qManager) {
-      const fresh = updatedList.find(q => q._id === qManager._id);
-      if (fresh) setQManager(fresh);
+    setQuizzes(prev => prev.map(q => q._id === updatedQuiz._id ? updatedQuiz : q));
+
+    if (qManager && qManager._id == updatedQuiz._id) {
+      setQManager(updatedQuiz);
     }
   }, [qManager]);
 
