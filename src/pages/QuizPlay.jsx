@@ -18,20 +18,26 @@ export default function QuizPlay() {
   const [result, setResult] = useState(null);
   const [err, setErr] = useState('');
 
-  const load = (l) => {
-    setLoading(true); setErr('');
-    playQuiz(id, l).then(r => {
-      const d = r.data;
-      setQuizMeta({ title: d.title, description: d.description });
-      setQuestions(d.questions || []);
-      setLoading(false);
-    }).catch(e => {
-      setErr(e.response?.data?.message || 'Failed to load quiz');
-      setLoading(false);
-    });
-  };
+  useEffect(() => {
+    const load = (l) => {
+      setLoading(true);
+      setErr('');
 
-  useEffect(() => { load(lang); }, [id, lang]);
+      playQuiz(id, l).then(r => {
+        // FIX: Extract the nested data object (r.data.data)
+        const d = r.data.data ? r.data.data : r.data;
+
+        setQuizMeta({ title: d.title, description: d.description });
+        setQuestions(d.questions || []);
+        setLoading(false);
+      }).catch(e => {
+        setErr(e.response?.data?.message || 'Failed to load quiz');
+        setLoading(false);
+      });
+    };
+
+    load(lang);
+  }, [id, lang]);
 
   const handleSelect = (opt) => {
     if (result) return;
