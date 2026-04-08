@@ -1,5 +1,6 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import ProtectedRoute from './components/ProtectedRoute';
+import Landing from './pages/Landing';
 import Login from './pages/Login';
 import Signup from './pages/Signup';
 import Dashboard from './pages/Dashboard';
@@ -19,10 +20,11 @@ function App() {
   return (
     <BrowserRouter>
       <Routes>
-        <Route path="/login" element={token ? <Navigate to="/" replace /> : <Login />} />
-        <Route path="/signup" element={token ? <Navigate to="/" replace /> : <Signup />} />
+        <Route path="/" element={<Landing />} />
+        <Route path="/login" element={token ? <Navigate to="/dashboard" replace /> : <Login />} />
+        <Route path="/signup" element={token ? <Navigate to="/dashboard" replace /> : <Signup />} />
 
-        <Route path="/" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
+        <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
         <Route path="/identify" element={<ProtectedRoute><Identify /></ProtectedRoute>} />
         <Route path="/waste" element={<ProtectedRoute><WasteLibrary /></ProtectedRoute>} />
         <Route path="/disposal" element={<ProtectedRoute><DisposalLog /></ProtectedRoute>} />
