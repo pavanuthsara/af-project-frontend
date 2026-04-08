@@ -160,6 +160,27 @@ export default function DisposalLog() {
                   {filteredWaste.map(w => <option key={w._id} value={w._id}>{w.name}</option>)}
                 </select>
               </div>
+              {form.wasteId && wasteItems.find(w => w._id === form.wasteId) && (
+                <div className="card" style={{ background: 'linear-gradient(135deg, rgba(34,197,94,0.07), rgba(20,184,166,0.05))', padding: '1rem' }}>
+                  {(() => {
+                    const selected = wasteItems.find(w => w._id === form.wasteId);
+                    return (
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+                        <div>
+                          <h4 style={{ fontWeight: 700, fontSize: '1rem', color: 'var(--text-primary)', marginBottom: '0.25rem' }}>{selected.name}</h4>
+                          <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)', marginBottom: '0.5rem' }}>{selected.description}</p>
+                        </div>
+                        <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap' }}>
+                          {selected.recyclable && <span className="badge" style={{ background: '#22c55e22', color: '#22c55e', border: '1px solid #22c55e44', fontSize: '0.75rem' }}>♻️ Recyclable</span>}
+                          {selected.compostable && <span className="badge" style={{ background: '#84cc1622', color: '#84cc16', border: '1px solid #84cc1644', fontSize: '0.75rem' }}>🌱 Compostable</span>}
+                          {selected.hazardous && <span className="badge" style={{ background: '#ef444422', color: '#ef4444', border: '1px solid #ef444444', fontSize: '0.75rem' }}>⚠️ Hazardous</span>}
+                        </div>
+                        {selected.disposalInstructions && <p style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', fontStyle: 'italic', borderLeft: '3px solid var(--accent-green)', paddingLeft: '0.75rem' }}>{selected.disposalInstructions}</p>}
+                      </div>
+                    );
+                  })()}
+                </div>
+              )}
               <div className="grid-2" style={{ gap: '1rem' }}>
                 <div className="form-group">
                   <label className="form-label">Quantity</label>
@@ -214,22 +235,33 @@ export default function DisposalLog() {
                   <table>
                     <thead><tr><th>Waste Item</th><th>Qty</th><th>Weight</th><th>CO₂ Saved</th><th>Method</th><th>Date</th><th>Actions</th></tr></thead>
                     <tbody>
-                      {history.map(d => (
-                        <tr key={d.id}>
-                          <td style={{ fontWeight: 600 }}>{d.wasteId}</td>
-                          <td>{d.quantity}</td>
-                          <td>{d.weight} {d.unit}</td>
-                          <td><span style={{ color: 'var(--accent-green)', fontWeight: 700 }}>{d.co2Saved?.toFixed(3)} kg</span></td>
-                          <td><span className="badge" style={{ background: `${COLORS[d.disposalMethod] || '#888'}22`, color: COLORS[d.disposalMethod] || '#888', border: `1px solid ${COLORS[d.disposalMethod] || '#888'}44` }}>{d.disposalMethod}</span></td>
-                          <td style={{ color: 'var(--text-muted)', fontSize: '0.8rem' }}>{new Date(d.timestamp).toLocaleDateString()}</td>
-                          <td>
-                            <div style={{ display: 'flex', gap: '0.4rem' }}>
-                              <button className="btn btn-secondary btn-sm" onClick={() => openEdit(d)}>✏️</button>
-                              <button className="btn btn-danger btn-sm" onClick={() => handleDelete(d.id)}>🗑</button>
-                            </div>
-                          </td>
-                        </tr>
-                      ))}
+                      {history.map(d => {
+                        // Extract waste item name - handle both object and string formats
+                        let wasteName = 'Unknown';
+                        if (typeof d.wasteId === 'object' && d.wasteId !== null) {
+                          // If wasteId is an object with a name property
+                          wasteName = d.wasteId.name || d.wasteId._name || JSON.stringify(d.wasteId).substring(0, 30);
+                        } else if (typeof d.wasteId === 'string') {
+                          wasteName = d.wasteId;
+                        }
+                        
+                        return (
+                          <tr key={d.id}>
+                            <td style={{ fontWeight: 600 }}>{wasteName}</td>
+                            <td>{d.quantity}</td>
+                            <td>{d.weight} {d.unit}</td>
+                            <td><span style={{ color: 'var(--accent-green)', fontWeight: 700 }}>{d.co2Saved?.toFixed(3)} kg</span></td>
+                            <td><span className="badge" style={{ background: `${COLORS[d.disposalMethod] || '#888'}22`, color: COLORS[d.disposalMethod] || '#888', border: `1px solid ${COLORS[d.disposalMethod] || '#888'}44` }}>{d.disposalMethod}</span></td>
+                            <td style={{ color: 'var(--text-muted)', fontSize: '0.8rem' }}>{new Date(d.timestamp).toLocaleDateString()}</td>
+                            <td>
+                              <div style={{ display: 'flex', gap: '0.4rem' }}>
+                                <button className="btn btn-secondary btn-sm" onClick={() => openEdit(d)}>✏️</button>
+                                <button className="btn btn-danger btn-sm" onClick={() => handleDelete(d.id)}>🗑</button>
+                              </div>
+                            </td>
+                          </tr>
+                        );
+                      })}
                     </tbody>
                   </table>
                 </div>
