@@ -214,18 +214,20 @@ function QuestionManagerModal({ quiz, onClose, onQuizUpdated }) {
   const handleSaved = useCallback((savedQuestion) => {
     if (!savedQuestion) { setMode('list'); return; }
 
-    setQuestions(prev => {
-      const exists = prev.find(q => q._id === savedQuestion._id);
-      const updatedQuestions = exists
-        ? prev.map(q => q._id === savedQuestion._id ? savedQuestion : q)
-        : [...prev, savedQuestion];
-      // Notify the parent of the new state
-      onQuizUpdated({ ...quiz, questions: updatedQuestions });
+    // 1. Calculate the new array outside the state setter
+    const exists = questions.find(q => q._id === savedQuestion._id);
+    const updatedQuestions = exists
+      ? questions.map(q => q._id === savedQuestion._id ? savedQuestion : q)
+      : [...questions, savedQuestion];
 
-      return updatedQuestions;
-    });
+    // 2. Update local state
+    setQuestions(updatedQuestions);
+
+    // 3. Update parent state safely
+    onQuizUpdated({ ...quiz, questions: updatedQuestions });
+
     setMode('list');
-  }, [quiz, onQuizUpdated]);
+  }, [quiz, questions, onQuizUpdated]); // <-- Note: added 'questions' to dependency array
 
   const handleDelete = async (qid) => {
     if (!window.confirm('Delete this question?')) return;
@@ -233,14 +235,15 @@ function QuestionManagerModal({ quiz, onClose, onQuizUpdated }) {
     try {
       await deleteQuestion(qid);
 
-      setQuestions(prev => {
-        const updatedQuestions = prev.filter(q => q._id !== qid);
+      // 1. Calculate the new array outside the state setter
+      const updatedQuestions = questions.filter(q => q._id !== qid);
 
-        // Notify the parent of the new state
-        onQuizUpdated({ ...quiz, questions: updatedQuestions });
+      // 2. Update local state
+      setQuestions(updatedQuestions);
 
-        return updatedQuestions;
-      });
+      // 3. Update parent state safely
+      onQuizUpdated({ ...quiz, questions: updatedQuestions });
+
     } catch { /* silent */ }
     setDeleting(null);
   };
@@ -461,7 +464,7 @@ export default function AdminPanel() {
   };
 
   /* called by QuestionManagerModal after any mutation */
-  const onQuizzesUpdated = useCallback(updatedList => {
+  const onQuizzesUpdated = useCallback(updatedQuiz => {
     setQuizzes(prev => prev.map(q => q._id === updatedQuiz._id ? updatedQuiz : q));
 
     if (qManager && qManager._id == updatedQuiz._id) {
