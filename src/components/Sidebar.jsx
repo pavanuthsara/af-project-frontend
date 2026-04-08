@@ -16,6 +16,7 @@ const adminItems = [
 
 export default function Sidebar() {
   const { user, logout } = useAuthStore();
+  const navigate = useNavigate();
   const role = user?.role || 'user';
 
   const visible = navItems.filter(i => i.roles.includes(role));
@@ -23,7 +24,7 @@ export default function Sidebar() {
 
   return (
     <aside className="sidebar">
-      <div className="sidebar-logo">
+      <div className="sidebar-logo" onClick={() => navigate('/')} style={{ cursor: 'pointer' }}>
         <div className="sidebar-logo-icon">🌿</div>
         <div>
           <div className="sidebar-logo-text">EcoWaste</div>
