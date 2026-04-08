@@ -1,55 +1,15 @@
 import { useNavigate } from 'react-router-dom';
-import { useState } from 'react';
+import Navbar from '../components/Navbar';
 
 export default function Landing() {
   const navigate = useNavigate();
-  const [scrolled, setScrolled] = useState(false);
-
-  window.addEventListener('scroll', () => {
-    setScrolled(window.scrollY > 50);
-  });
 
   return (
     <div style={{ background: '#0a1a0e', color: '#d1fae5', minHeight: '100vh' }}>
-      {/* Sticky Navbar */}
-      <nav style={{
-        position: 'sticky',
-        top: 0,
-        zIndex: 1000,
-        display: 'flex',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-        padding: '1rem 2rem',
-        background: scrolled ? 'rgba(10, 26, 14, 0.95)' : 'transparent',
-        borderBottom: scrolled ? '1px solid rgba(74, 222, 128, 0.1)' : 'none',
-        backdropFilter: 'blur(10px)',
-        transition: 'all 0.3s ease'
-      }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '1.5rem', fontWeight: 800, cursor: 'pointer' }} onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}>
-          <span style={{ fontSize: '2rem' }}>♻️</span>
-          <span style={{ color: '#4ade80' }}>BinWise</span>
-        </div>
-
-        <div style={{ display: 'flex', gap: '2.5rem', alignItems: 'center' }}>
-          {['Features', 'How it works', 'Community', 'Pricing'].map((link) => (
-            <a key={link} href="#" style={{ color: '#86efac', textDecoration: 'none', fontSize: '0.95rem', fontWeight: 500, transition: 'color 0.3s' }} onMouseEnter={(e) => e.target.style.color = '#4ade80'} onMouseLeave={(e) => e.target.style.color = '#86efac'}>
-              {link}
-            </a>
-          ))}
-        </div>
-
-        <div style={{ display: 'flex', gap: '1rem' }}>
-          <button onClick={() => navigate('/login')} style={{ background: 'transparent', border: '1.5px solid #4ade80', color: '#4ade80', padding: '0.6rem 1.25rem', borderRadius: '6px', cursor: 'pointer', fontWeight: 600, fontSize: '0.95rem', transition: 'all 0.3s' }} onMouseEnter={(e) => { e.target.background = '#4ade80'; e.target.color = '#0a1a0e'; }} onMouseLeave={(e) => { e.target.background = 'transparent'; e.target.color = '#4ade80'; }}>
-            Login
-          </button>
-          <button onClick={() => navigate('/signup')} style={{ background: '#4ade80', color: '#0a1a0e', padding: '0.6rem 1.25rem', borderRadius: '6px', border: 'none', cursor: 'pointer', fontWeight: 700, fontSize: '0.95rem', transition: 'all 0.3s', boxShadow: '0 0 20px rgba(74, 222, 128, 0.3)' }} onMouseEnter={(e) => e.target.boxShadow = '0 0 30px rgba(74, 222, 128, 0.5)'} onMouseLeave={(e) => e.target.boxShadow = '0 0 20px rgba(74, 222, 128, 0.3)'}>
-            Sign Up Free
-          </button>
-        </div>
-      </nav>
+      <Navbar />
 
       {/* Hero Section */}
-      <section style={{ padding: '6rem 2rem', textAlign: 'center', maxWidth: '1200px', margin: '0 auto' }}>
+      <section style={{ padding: '8rem 2rem 6rem', textAlign: 'center', maxWidth: '1200px', margin: '0 auto' }}>
         <div style={{ display: 'inline-block', background: 'rgba(74, 222, 128, 0.1)', border: '1px solid rgba(74, 222, 128, 0.3)', borderRadius: '50px', padding: '0.6rem 1.2rem', marginBottom: '2.5rem', fontSize: '0.8rem', color: '#86efac', fontWeight: 600, letterSpacing: '0.08em', textTransform: 'uppercase' }}>
           ✨ Join 10K+ eco-conscious users
         </div>
@@ -65,16 +25,13 @@ export default function Landing() {
         </p>
 
         <div style={{ display: 'flex', gap: '3rem', justifyContent: 'center', flexWrap: 'wrap', marginBottom: '4rem' }}>
-          <button onClick={() => navigate('/signup')} style={{ background: 'linear-gradient(135deg, #4ade80 0%, #16a34a 100%)', color: '#0a1a0e', padding: '1.2rem 3rem', borderRadius: '50px', border: 'none', cursor: 'pointer', fontWeight: 700, fontSize: '1.1rem', transition: 'all 0.3s', boxShadow: '0 0 30px rgba(74, 222, 128, 0.4)', letterSpacing: '0.02em' }} onMouseEnter={(e) => { e.target.transform = 'translateY(-2px)'; e.target.boxShadow = '0 0 40px rgba(74, 222, 128, 0.6)'; }} onMouseLeave={(e) => { e.target.transform = 'translateY(0)'; e.target.boxShadow = '0 0 30px rgba(74, 222, 128, 0.4)'; }}>
+          <button onClick={() => navigate('/signup')} style={{ background: 'linear-gradient(135deg, #4ade80 0%, #16a34a 100%)', color: '#0a1a0e', padding: '1.2rem 3rem', borderRadius: '50px', border: 'none', cursor: 'pointer', fontWeight: 700, fontSize: '1.1rem', transition: 'all 0.3s', boxShadow: '0 0 30px rgba(74, 222, 128, 0.4)', letterSpacing: '0.02em' }}>
             Get Started Free
           </button>
-          <button style={{ background: 'transparent', border: '2px solid #4ade80', color: '#4ade80', padding: '1.2rem 3rem', borderRadius: '50px', cursor: 'pointer', fontWeight: 700, fontSize: '1.1rem', transition: 'all 0.3s', display: 'flex', alignItems: 'center', gap: '0.75rem', letterSpacing: '0.02em' }} onMouseEnter={(e) => { e.target.background = 'rgba(74, 222, 128, 0.1)'; e.target.transform = 'translateY(-2px)'; }} onMouseLeave={(e) => { e.target.background = 'transparent'; e.target.transform = 'translateY(0)'; }}>
+          <button style={{ background: 'transparent', border: '2px solid #4ade80', color: '#4ade80', padding: '1.2rem 3rem', borderRadius: '50px', cursor: 'pointer', fontWeight: 700, fontSize: '1.1rem', transition: 'all 0.3s', display: 'flex', alignItems: 'center', gap: '0.75rem', letterSpacing: '0.02em' }}>
             ▶️ Watch Demo
           </button>
         </div>
-
-        {/* Hero Image Placeholder */}
-
       </section>
 
       {/* Stats Bar */}
@@ -93,7 +50,7 @@ export default function Landing() {
       </section>
 
       {/* Features Section */}
-      <section style={{ padding: '5rem 2rem', maxWidth: '1200px', margin: '0 auto' }}>
+      <section id="features" style={{ padding: '5rem 2rem', maxWidth: '1200px', margin: '0 auto' }}>
         <div style={{ marginBottom: '3rem' }}>
           <div style={{ fontSize: '0.75rem', fontWeight: 700, color: '#4ade80', letterSpacing: '0.15em', marginBottom: '1rem', textTransform: 'uppercase' }}>ECOSYSTEM</div>
           <h2 style={{ fontSize: '3rem', fontWeight: 900, lineHeight: 1.2, color: '#d1fae5' }}>
@@ -110,7 +67,7 @@ export default function Landing() {
             { icon: '🎯', title: 'Eco Quizzes', desc: 'Learn sustainability best practices through interactive quizzes and earn certificates.' },
             { icon: '📍', title: 'Recycle Centres', desc: 'Discover nearby recycling and disposal centers with directions and contact information.' }
           ].map((feature, i) => (
-            <div key={i} style={{ background: 'rgba(74, 222, 128, 0.05)', border: '1px solid rgba(74, 222, 128, 0.2)', borderRadius: '10px', padding: '2rem', transition: 'all 0.3s', cursor: 'pointer' }} onMouseEnter={(e) => { e.currentTarget.style.background = 'rgba(74, 222, 128, 0.1)'; e.currentTarget.style.borderColor = 'rgba(74, 222, 128, 0.4)'; e.currentTarget.style.transform = 'translateY(-5px)'; }} onMouseLeave={(e) => { e.currentTarget.style.background = 'rgba(74, 222, 128, 0.05)'; e.currentTarget.style.borderColor = 'rgba(74, 222, 128, 0.2)'; e.currentTarget.style.transform = 'translateY(0)'; }}>
+            <div key={i} style={{ background: 'rgba(74, 222, 128, 0.05)', border: '1px solid rgba(74, 222, 128, 0.2)', borderRadius: '10px', padding: '2rem', transition: 'all 0.3s', cursor: 'pointer' }}>
               <div style={{ fontSize: '2rem', marginBottom: '1rem' }}>{feature.icon}</div>
               <h3 style={{ fontSize: '1.1rem', fontWeight: 700, marginBottom: '0.75rem', color: '#86efac' }}>{feature.title}</h3>
               <p style={{ fontSize: '0.9rem', color: '#d1fae5', lineHeight: 1.6 }}>{feature.desc}</p>
@@ -119,8 +76,8 @@ export default function Landing() {
         </div>
       </section>
 
-      {/* Why BinWise Section */}
-      <section style={{ padding: '5rem 2rem', maxWidth: '1200px', margin: '0 auto' }}>
+      {/* Why BinWise Section (How it works) */}
+      <section id="how-it-works" style={{ padding: '5rem 2rem', maxWidth: '1200px', margin: '0 auto' }}>
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '3rem', alignItems: 'center' }}>
           <div>
             <div style={{ fontSize: '0.75rem', fontWeight: 700, color: '#4ade80', letterSpacing: '0.15em', marginBottom: '1rem', textTransform: 'uppercase' }}>THE BIG IDEA</div>
@@ -152,8 +109,8 @@ export default function Landing() {
         </div>
       </section>
 
-      {/* Testimonials Section */}
-      <section style={{ padding: '5rem 2rem', maxWidth: '1200px', margin: '0 auto' }}>
+      {/* Testimonials Section (Community) */}
+      <section id="community" style={{ padding: '5rem 2rem', maxWidth: '1200px', margin: '0 auto' }}>
         <div style={{ textAlign: 'center', marginBottom: '3rem' }}>
           <div style={{ fontSize: '0.75rem', fontWeight: 700, color: '#4ade80', letterSpacing: '0.15em', marginBottom: '1rem', textTransform: 'uppercase' }}>SOCIAL PROOF</div>
           <h2 style={{ fontSize: '2.8rem', fontWeight: 900, color: '#d1fae5' }}>
@@ -188,8 +145,8 @@ export default function Landing() {
         </div>
       </section>
 
-      {/* CTA Section */}
-      <section style={{ padding: '5rem 2rem', margin: '3rem 0' }}>
+      {/* CTA Section (Pricing) */}
+      <section id="pricing" style={{ padding: '5rem 2rem', margin: '3rem 0' }}>
         <div style={{ background: 'linear-gradient(135deg, rgba(74, 222, 128, 0.15), rgba(22, 163, 74, 0.1))', border: '1px solid rgba(74, 222, 128, 0.3)', borderRadius: '12px', padding: '5rem 2rem', maxWidth: '900px', margin: '0 auto', textAlign: 'center' }}>
           <h2 style={{ fontSize: '2.8rem', fontWeight: 900, marginBottom: '1.5rem', color: '#d1fae5', lineHeight: 1.2 }}>
             Ready to Make a<br />Difference?
@@ -198,10 +155,10 @@ export default function Landing() {
             Join thousands of others who are transforming their waste habits. Start your free<br />trial today and get your first impact report by next week.
           </p>
           <div style={{ display: 'flex', gap: '3rem', justifyContent: 'center', flexWrap: 'wrap' }}>
-            <button onClick={() => navigate('/signup')} style={{ background: 'linear-gradient(135deg, #4ade80 0%, #16a34a 100%)', color: '#0a1a0e', padding: '1.2rem 3rem', borderRadius: '50px', border: 'none', cursor: 'pointer', fontWeight: 700, fontSize: '1.1rem', boxShadow: '0 0 30px rgba(74, 222, 128, 0.4)', transition: 'all 0.3s' }} onMouseEnter={(e) => { e.target.transform = 'translateY(-2px)'; e.target.boxShadow = '0 0 40px rgba(74, 222, 128, 0.6)'; }} onMouseLeave={(e) => { e.target.transform = 'translateY(0)'; e.target.boxShadow = '0 0 30px rgba(74, 222, 128, 0.4)'; }}>
+            <button onClick={() => navigate('/signup')} style={{ background: 'linear-gradient(135deg, #4ade80 0%, #16a34a 100%)', color: '#0a1a0e', padding: '1.2rem 3rem', borderRadius: '50px', border: 'none', cursor: 'pointer', fontWeight: 700, fontSize: '1.1rem', boxShadow: '0 0 30px rgba(74, 222, 128, 0.4)', transition: 'all 0.3s' }}>
               Start Your Journey
             </button>
-            <button onClick={() => navigate('/login')} style={{ background: 'transparent', border: '2px solid #4ade80', color: '#4ade80', padding: '1.2rem 3rem', borderRadius: '50px', cursor: 'pointer', fontWeight: 700, fontSize: '1.1rem', transition: 'all 0.3s' }} onMouseEnter={(e) => { e.target.background = 'rgba(74, 222, 128, 0.1)'; e.target.transform = 'translateY(-2px)'; }} onMouseLeave={(e) => { e.target.background = 'transparent'; e.target.transform = 'translateY(0)'; }}>
+            <button onClick={() => navigate('/login')} style={{ background: 'transparent', border: '2px solid #4ade80', color: '#4ade80', padding: '1.2rem 3rem', borderRadius: '50px', cursor: 'pointer', fontWeight: 700, fontSize: '1.1rem', transition: 'all 0.3s' }}>
               Contact Sales
             </button>
           </div>
@@ -217,7 +174,7 @@ export default function Landing() {
           </div>
           <div style={{ display: 'flex', gap: '3rem', flexWrap: 'wrap' }}>
             {['PRIVACY', 'TERMS', 'CONTACT', 'BLOG'].map((link) => (
-              <a key={link} href="#" style={{ color: '#86efac', textDecoration: 'none', fontSize: '0.85rem', fontWeight: 600, letterSpacing: '0.05em', transition: 'color 0.3s' }} onMouseEnter={(e) => e.target.style.color = '#4ade80'} onMouseLeave={(e) => e.target.style.color = '#86efac'}>
+              <a key={link} href="#" style={{ color: '#86efac', textDecoration: 'none', fontSize: '0.85rem', fontWeight: 600, letterSpacing: '0.05em', transition: 'color 0.3s' }}>
                 {link}
               </a>
             ))}
