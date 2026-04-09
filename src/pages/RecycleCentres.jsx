@@ -10,6 +10,41 @@ import {
 import { getCategories } from '../api/wasteApi';
 import useAuthStore from '../store/authStore';
 
+function Toast({ toast, onClose }) {
+  useEffect(() => {
+    if (!toast) return undefined;
+    const timer = setTimeout(onClose, 3000);
+    return () => clearTimeout(timer);
+  }, [toast, onClose]);
+
+  if (!toast) return null;
+
+  const tone = toast.type === 'error'
+    ? { bg: 'rgba(239,68,68,0.14)', border: 'rgba(239,68,68,0.28)', color: 'var(--danger)', title: 'Error' }
+    : { bg: 'rgba(34,197,94,0.14)', border: 'rgba(34,197,94,0.28)', color: 'var(--accent-green)', title: 'Success' };
+
+  return (
+    <div style={{ position: 'fixed', top: 24, right: 24, zIndex: 1200, width: 'min(360px, calc(100vw - 2rem))' }}>
+      <div className="fade-in" style={{
+        background: tone.bg,
+        border: `1px solid ${tone.border}`,
+        borderRadius: 14,
+        boxShadow: '0 18px 40px rgba(0,0,0,0.25)',
+        backdropFilter: 'blur(10px)',
+        padding: '0.95rem 1rem',
+      }}>
+        <div className="flex-between" style={{ gap: '0.75rem', alignItems: 'flex-start' }}>
+          <div>
+            <div style={{ color: tone.color, fontWeight: 700, fontSize: '0.9rem', marginBottom: '0.2rem' }}>{tone.title}</div>
+            <div style={{ color: 'var(--text-primary)', fontSize: '0.9rem', lineHeight: 1.45 }}>{toast.message}</div>
+          </div>
+          <button className="btn btn-secondary btn-sm" onClick={onClose}>X</button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 function Modal({ title, onClose, children }) {
   return (
     <div className="modal-overlay" onClick={e => e.target === e.currentTarget && onClose()}>
@@ -79,6 +114,9 @@ export default function RecycleCentres() {
   const [cForm, setCForm] = useState(emptyForm);
   const [saving, setSaving] = useState(false);
   const [err, setErr] = useState('');
+  const [toast, setToast] = useState(null);
+
+  const showToast = (message, type = 'success') => setToast({ message, type });
 
   const load = async () => {
     setLoading(true);
@@ -87,8 +125,10 @@ export default function RecycleCentres() {
       const r = await getCentres();
       setCentres(r.data.recyclingCenters || []);
     } catch (e) {
+      const message = e.response?.data?.message || e.response?.data?.error || 'Failed to load recycle centres.';
       setCentres([]);
-      setPageErr(e.response?.data?.message || e.response?.data?.error || 'Failed to load recycle centres.');
+      setPageErr(message);
+      showToast(message, 'error');
     } finally {
       setLoading(false);
     }
@@ -118,9 +158,12 @@ export default function RecycleCentres() {
     try {
       const r = await searchCentres(searchQuery);
       setCentres(r.data.recyclingCenters || []);
+      showToast(`Found ${r.data.recyclingCenters?.length || 0} recycle centre${(r.data.recyclingCenters?.length || 0) !== 1 ? 's' : ''}.`);
     } catch (e) {
+      const message = e.response?.data?.message || e.response?.data?.error || 'Search failed.';
       setCentres([]);
-      setPageErr(e.response?.data?.message || e.response?.data?.error || 'Search failed.');
+      setPageErr(message);
+      showToast(message, 'error');
     } finally {
       setSearching(false);
     }
@@ -135,9 +178,12 @@ export default function RecycleCentres() {
     try {
       const r = await getCentresByWasteType(wasteType);
       setCentres(r.data.recyclingCenters || []);
+      showToast(`Showing ${r.data.recyclingCenters?.length || 0} centre${(r.data.recyclingCenters?.length || 0) !== 1 ? 's' : ''} for ${wasteType}.`);
     } catch (e) {
+      const message = e.response?.data?.message || e.response?.data?.error || 'Failed to filter recycle centres.';
       setCentres([]);
-      setPageErr(e.response?.data?.message || e.response?.data?.error || 'Failed to filter recycle centres.');
+      setPageErr(message);
+      showToast(message, 'error');
     } finally {
       setLoading(false);
     }
@@ -189,9 +235,12 @@ export default function RecycleCentres() {
       else await updateCentre(getCentreId(cModal), payload);
 
       setCModal(null);
+      showToast(cModal === 'new' ? 'Recycle centre created successfully.' : 'Recycle centre updated successfully.');
       load();
     } catch (e) {
-      setErr(e.response?.data?.message || e.response?.data?.error || 'Error');
+      const message = e.response?.data?.message || e.response?.data?.error || 'Error';
+      setErr(message);
+      showToast(message, 'error');
     } finally {
       setSaving(false);
     }
@@ -203,9 +252,12 @@ export default function RecycleCentres() {
     setPageErr('');
     try {
       await deleteCentre(id);
+      showToast('Recycle centre deleted successfully.');
       load();
     } catch (e) {
-      setPageErr(e.response?.data?.message || e.response?.data?.error || 'Failed to delete recycle centre.');
+      const message = e.response?.data?.message || e.response?.data?.error || 'Failed to delete recycle centre.';
+      setPageErr(message);
+      showToast(message, 'error');
     }
   };
 
@@ -220,6 +272,8 @@ export default function RecycleCentres() {
 
   return (
     <div>
+      <Toast toast={toast} onClose={() => setToast(null)} />
+
       <div className="flex-between page-header" style={{ flexWrap: 'wrap', gap: '1rem' }}>
         <div>
           <h1 className="page-title">Recycle Centres</h1>
