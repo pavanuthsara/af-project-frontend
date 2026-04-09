@@ -1,5 +1,12 @@
 import { useEffect, useState } from 'react';
-import { getCentres, getCentresByWasteType, searchCentres, createCentre, deleteCentre, updateCentre } from '../api/centresApi';
+import {
+  getCentres,
+  getCentresByWasteType,
+  searchCentres,
+  createCentre,
+  deleteCentre,
+  updateCentre,
+} from '../api/centresApi';
 import { getCategories } from '../api/wasteApi';
 import useAuthStore from '../store/authStore';
 
@@ -9,7 +16,7 @@ function Modal({ title, onClose, children }) {
       <div className="modal-box">
         <div className="flex-between" style={{ marginBottom: '1.5rem' }}>
           <h2 style={{ fontWeight: 700, fontSize: '1.2rem' }}>{title}</h2>
-          <button className="btn btn-secondary btn-sm" onClick={onClose}>✕</button>
+          <button className="btn btn-secondary btn-sm" onClick={onClose}>X</button>
         </div>
         {children}
       </div>
@@ -18,7 +25,8 @@ function Modal({ title, onClose, children }) {
 }
 
 const emptyForm = {
-  name: '', address: '',
+  name: '',
+  address: '',
   location: { type: 'Point', coordinates: [0, 0] },
   acceptedWasteTypes: [],
   operatingHours: '',
@@ -26,10 +34,37 @@ const emptyForm = {
   currentLoadKg: '',
 };
 
+const getCentreId = (centre) => centre?.id || centre?._id || '';
+const uniqueWasteTypes = (types = []) => [...new Set(types.filter(Boolean))];
+const capacityPct = (centre) => centre.maxCapacityKg > 0 ? Math.round((centre.currentLoadKg / centre.maxCapacityKg) * 100) : 0;
+const capColor = (pct) => pct >= 90 ? 'var(--danger)' : pct >= 70 ? 'var(--warning)' : 'var(--accent-green)';
+
+function validateCentre(payload, validWasteTypes) {
+  if (!payload.name?.trim()) return 'Name is required.';
+  if (!payload.address?.trim()) return 'Address is required.';
+  if (payload.location?.type !== 'Point') return 'Location type must be Point.';
+  if (!Array.isArray(payload.location?.coordinates) || payload.location.coordinates.length !== 2) {
+    return 'Location coordinates must be [lng, lat].';
+  }
+
+  const [lng, lat] = payload.location.coordinates;
+  if (!Number.isFinite(lng) || !Number.isFinite(lat)) return 'Longitude and latitude must be valid numbers.';
+  if (payload.acceptedWasteTypes.length === 0) return 'Select at least one accepted waste type.';
+  if (validWasteTypes.length === 0) return 'Waste type list is unavailable. Add categories before saving.';
+  if (payload.acceptedWasteTypes.some(type => !validWasteTypes.includes(type))) {
+    return 'Selected waste types must match the backend category names.';
+  }
+  if (!Number.isFinite(payload.maxCapacityKg) || payload.maxCapacityKg < 1) return 'Max capacity must be at least 1 kg.';
+  if (!Number.isFinite(payload.currentLoadKg) || payload.currentLoadKg < 0) return 'Current load must be 0 or greater.';
+  if (payload.currentLoadKg > payload.maxCapacityKg) return 'Current load cannot exceed max capacity.';
+
+  return '';
+}
+
 export default function RecycleCentres() {
   const { user } = useAuthStore();
   const isAdmin = user?.role === 'admin';
-  const isManager = user?.role === 'manager' || user?.role === 'admin';
+  const isManager = user?.role === 'manager';
 
   const [centres, setCentres] = useState([]);
   const [wasteTypes, setWasteTypes] = useState([]);
@@ -38,22 +73,32 @@ export default function RecycleCentres() {
   const [searching, setSearching] = useState(false);
   const [filterWaste, setFilterWaste] = useState('');
   const [selected, setSelected] = useState(null);
+  const [pageErr, setPageErr] = useState('');
 
-  const [cModal, setCModal] = useState(null); // null | 'new' | {obj}
+  const [cModal, setCModal] = useState(null);
   const [cForm, setCForm] = useState(emptyForm);
   const [saving, setSaving] = useState(false);
   const [err, setErr] = useState('');
 
-  const load = () => {
+  const load = async () => {
     setLoading(true);
-    getCentres().then(r => { setCentres(r.data.recyclingCenters || []); setLoading(false); });
+    setPageErr('');
+    try {
+      const r = await getCentres();
+      setCentres(r.data.recyclingCenters || []);
+    } catch (e) {
+      setCentres([]);
+      setPageErr(e.response?.data?.message || e.response?.data?.error || 'Failed to load recycle centres.');
+    } finally {
+      setLoading(false);
+    }
   };
 
   const loadWasteTypes = async () => {
     try {
       const r = await getCategories({ page: 1, limit: 100 });
       const raw = r.data?.categories || r.data?.data || [];
-      const names = [...new Set(raw.map(c => c?.name).filter(Boolean))];
+      const names = [...new Set(raw.map(category => category?.name).filter(Boolean))];
       setWasteTypes(names);
     } catch {
       setWasteTypes([]);
@@ -67,135 +112,213 @@ export default function RecycleCentres() {
 
   const handleSearch = async () => {
     if (!searchQuery.trim()) return load();
+
     setSearching(true);
+    setPageErr('');
     try {
       const r = await searchCentres(searchQuery);
       setCentres(r.data.recyclingCenters || []);
-    } finally { setSearching(false); }
+    } catch (e) {
+      setCentres([]);
+      setPageErr(e.response?.data?.message || e.response?.data?.error || 'Search failed.');
+    } finally {
+      setSearching(false);
+    }
   };
 
-  const handleFilterWaste = async (wt) => {
-    setFilterWaste(wt);
-    if (!wt) return load();
+  const handleFilterWaste = async (wasteType) => {
+    setFilterWaste(wasteType);
+    if (!wasteType) return load();
+
     setLoading(true);
-    getCentresByWasteType(wt).then(r => { setCentres(r.data.recyclingCenters || []); setLoading(false); });
+    setPageErr('');
+    try {
+      const r = await getCentresByWasteType(wasteType);
+      setCentres(r.data.recyclingCenters || []);
+    } catch (e) {
+      setCentres([]);
+      setPageErr(e.response?.data?.message || e.response?.data?.error || 'Failed to filter recycle centres.');
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const openNew = () => { setCForm(emptyForm); setCModal('new'); setErr(''); };
-  const openEdit = (c) => {
+  const openNew = () => {
+    setCForm(emptyForm);
+    setCModal('new');
+    setErr('');
+  };
+
+  const openEdit = (centre) => {
     setCForm({
-      name: c.name, address: c.address,
-      location: c.location || { type: 'Point', coordinates: [0, 0] },
-      acceptedWasteTypes: uniqueWasteTypes(c.acceptedWasteTypes),
-      operatingHours: c.operatingHours || '',
-      maxCapacityKg: c.maxCapacityKg || '',
-      currentLoadKg: c.currentLoadKg || '',
+      name: centre.name || '',
+      address: centre.address || '',
+      location: centre.location || { type: 'Point', coordinates: [0, 0] },
+      acceptedWasteTypes: uniqueWasteTypes(centre.acceptedWasteTypes),
+      operatingHours: centre.operatingHours || '',
+      maxCapacityKg: centre.maxCapacityKg ?? '',
+      currentLoadKg: centre.currentLoadKg ?? '',
     });
-    setCModal(c); setErr('');
+    setCModal(centre);
+    setErr('');
   };
 
   const saveCentre = async () => {
-    setSaving(true); setErr('');
+    setSaving(true);
+    setErr('');
+
     try {
-      const payload = { ...cForm, maxCapacityKg: Number(cForm.maxCapacityKg), currentLoadKg: Number(cForm.currentLoadKg) };
+      const payload = {
+        ...cForm,
+        location: {
+          type: 'Point',
+          coordinates: [Number(cForm.location.coordinates[0]), Number(cForm.location.coordinates[1])],
+        },
+        acceptedWasteTypes: uniqueWasteTypes(cForm.acceptedWasteTypes),
+        maxCapacityKg: Number(cForm.maxCapacityKg),
+        currentLoadKg: Number(cForm.currentLoadKg),
+      };
+
+      const validationError = validateCentre(payload, wasteTypes);
+      if (validationError) {
+        setErr(validationError);
+        return;
+      }
+
       if (cModal === 'new') await createCentre(payload);
-      else await updateCentre(cModal.id, payload);
-      setCModal(null); load();
-    } catch (e) { setErr(e.response?.data?.message || e.response?.data?.error || 'Error'); }
-    setSaving(false);
+      else await updateCentre(getCentreId(cModal), payload);
+
+      setCModal(null);
+      load();
+    } catch (e) {
+      setErr(e.response?.data?.message || e.response?.data?.error || 'Error');
+    } finally {
+      setSaving(false);
+    }
   };
 
   const handleDelete = async (id) => {
     if (!window.confirm('Delete this recycling centre?')) return;
-    await deleteCentre(id); load();
+
+    setPageErr('');
+    try {
+      await deleteCentre(id);
+      load();
+    } catch (e) {
+      setPageErr(e.response?.data?.message || e.response?.data?.error || 'Failed to delete recycle centre.');
+    }
   };
 
-  const toggleWasteType = (wt) => {
-    setCForm(f => ({
-      ...f, acceptedWasteTypes: f.acceptedWasteTypes.includes(wt)
-        ? f.acceptedWasteTypes.filter(t => t !== wt)
-        : [...f.acceptedWasteTypes, wt],
+  const toggleWasteType = (wasteType) => {
+    setCForm(form => ({
+      ...form,
+      acceptedWasteTypes: form.acceptedWasteTypes.includes(wasteType)
+        ? form.acceptedWasteTypes.filter(type => type !== wasteType)
+        : [...form.acceptedWasteTypes, wasteType],
     }));
   };
-
-  const capacityPct = (c) => c.maxCapacityKg > 0 ? Math.round((c.currentLoadKg / c.maxCapacityKg) * 100) : 0;
-  const capColor = (pct) => pct >= 90 ? 'var(--danger)' : pct >= 70 ? 'var(--warning)' : 'var(--accent-green)';
-  const uniqueWasteTypes = (types = []) => [...new Set(types.filter(Boolean))];
 
   return (
     <div>
       <div className="flex-between page-header" style={{ flexWrap: 'wrap', gap: '1rem' }}>
         <div>
-          <h1 className="page-title">📍 Recycle Centres</h1>
+          <h1 className="page-title">Recycle Centres</h1>
           <p className="page-subtitle">Find nearby recycling drop-off locations</p>
         </div>
         {isAdmin && <button className="btn btn-primary" onClick={openNew}>+ Add Centre</button>}
       </div>
 
-      {/* Search + Filters */}
       <div style={{ display: 'flex', gap: '1rem', marginBottom: '1.5rem', flexWrap: 'wrap' }}>
         <div style={{ display: 'flex', flex: 1, minWidth: 260, gap: '0.5rem' }}>
-          <input className="form-input" placeholder="🤖 AI search: e.g. plastic centres in Colombo"
-            value={searchQuery} onChange={e => setSearchQuery(e.target.value)}
+          <input
+            className="form-input"
+            placeholder="AI search: e.g. plastic centres in Colombo"
+            value={searchQuery}
+            onChange={e => setSearchQuery(e.target.value)}
             onKeyDown={e => e.key === 'Enter' && handleSearch()}
-            style={{ flex: 1 }} />
+            style={{ flex: 1 }}
+          />
           <button className="btn btn-primary" onClick={handleSearch} disabled={searching}>
-            {searching ? <span className="spinner" /> : '🔍'}
+            {searching ? <span className="spinner" /> : 'Search'}
           </button>
-          {searchQuery && <button className="btn btn-secondary btn-sm" onClick={() => { setSearchQuery(''); load(); }}>✕</button>}
+          {searchQuery && (
+            <button className="btn btn-secondary btn-sm" onClick={() => { setSearchQuery(''); load(); }}>
+              Clear
+            </button>
+          )}
         </div>
-        <select className="form-select" style={{ width: 200 }} value={filterWaste} onChange={e => handleFilterWaste(e.target.value)}>
+        <select className="form-select" style={{ width: 220 }} value={filterWaste} onChange={e => handleFilterWaste(e.target.value)}>
           <option value="">All waste types</option>
-          {wasteTypes.map(w => <option key={w} value={w}>{w}</option>)}
+          {wasteTypes.map(wasteType => <option key={wasteType} value={wasteType}>{wasteType}</option>)}
         </select>
       </div>
 
-      {/* Centre cards */}
+      {pageErr && <div className="error-msg" style={{ marginBottom: '1rem' }}>{pageErr}</div>}
+
       {loading ? (
         <div className="flex-center" style={{ height: 200 }}><span className="spinner" style={{ width: 36, height: 36 }} /></div>
       ) : centres.length === 0 ? (
-        <div className="empty-state"><div className="empty-state-icon">📍</div><p>No centres found</p></div>
+        <div className="empty-state"><div className="empty-state-icon">[ ]</div><p>No centres found</p></div>
       ) : (
         <div className="grid-2">
-          {centres.map(c => {
-            const pct = capacityPct(c);
-            const wasteTypes = uniqueWasteTypes(c.acceptedWasteTypes);
+          {centres.map(centre => {
+            const pct = capacityPct(centre);
+            const centreId = getCentreId(centre);
+            const centreWasteTypes = uniqueWasteTypes(centre.acceptedWasteTypes);
+            const isSelected = getCentreId(selected) === centreId;
+
             return (
-              <div key={c.id} className="card" style={{ cursor: 'pointer', border: selected?.id === c.id ? '1px solid var(--accent-green)' : undefined }}
-                onClick={() => setSelected(s => s?.id === c.id ? null : c)}>
+              <div
+                key={centreId || centre.name}
+                className="card"
+                style={{ cursor: 'pointer', border: isSelected ? '1px solid var(--accent-green)' : undefined }}
+                onClick={() => setSelected(current => getCentreId(current) === centreId ? null : centre)}
+              >
                 <div className="flex-between" style={{ marginBottom: '0.75rem' }}>
-                  <h3 style={{ fontWeight: 700, fontSize: '1rem' }}>{c.name}</h3>
+                  <h3 style={{ fontWeight: 700, fontSize: '1rem' }}>{centre.name}</h3>
                   <span className="badge" style={{ background: `${capColor(pct)}22`, color: capColor(pct), border: `1px solid ${capColor(pct)}44` }}>
                     {pct}% full
                   </span>
                 </div>
+
                 <div style={{ color: 'var(--text-secondary)', fontSize: '0.85rem', marginBottom: '0.75rem' }}>
-                  📍 {c.address}
+                  {centre.address}
                 </div>
-                {c.operatingHours && (
+
+                {centre.operatingHours && (
                   <div style={{ color: 'var(--text-muted)', fontSize: '0.8rem', marginBottom: '0.75rem' }}>
-                    🕐 {c.operatingHours}
+                    {centre.operatingHours}
                   </div>
                 )}
+
                 <div style={{ display: 'flex', gap: '0.3rem', flexWrap: 'wrap', marginBottom: '0.75rem' }}>
-                  {wasteTypes.map((wt, index) => <span key={`${c.id || c._id || c.name}-${wt}-${index}`} className="badge badge-teal">{wt}</span>)}
+                  {centreWasteTypes.map((wasteType, index) => (
+                    <span key={`${centreId || centre.name}-${wasteType}-${index}`} className="badge badge-teal">{wasteType}</span>
+                  ))}
                 </div>
-                {/* Capacity bar */}
+
                 <div>
                   <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.75rem', color: 'var(--text-muted)', marginBottom: '0.3rem' }}>
-                    <span>Capacity</span><span>{c.currentLoadKg?.toLocaleString()} / {c.maxCapacityKg?.toLocaleString()} kg</span>
+                    <span>Capacity</span>
+                    <span>{centre.currentLoadKg?.toLocaleString()} / {centre.maxCapacityKg?.toLocaleString()} kg</span>
                   </div>
                   <div className="progress-bar">
                     <div className="progress-fill" style={{ width: `${pct}%`, background: `linear-gradient(90deg, ${capColor(pct)}, ${capColor(pct)}aa)` }} />
                   </div>
                 </div>
 
-                {selected?.id === c.id && (
-                  <div style={{ display: 'flex', gap: '0.5rem', marginTop: '1rem' }} onClick={e => e.stopPropagation()}>
-                    <a href={`https://www.google.com/maps/search/?api=1&query=${c.location?.coordinates?.[1]},${c.location?.coordinates?.[0]}`}
-                      target="_blank" rel="noreferrer" className="btn btn-secondary btn-sm">🗺 Directions</a>
-                    {isManager && <button className="btn btn-secondary btn-sm" onClick={() => openEdit(c)}>✏️ Edit</button>}
-                    {isAdmin && <button className="btn btn-danger btn-sm" onClick={() => handleDelete(c.id)}>🗑 Delete</button>}
+                {isSelected && (
+                  <div style={{ display: 'flex', gap: '0.5rem', marginTop: '1rem', flexWrap: 'wrap' }} onClick={e => e.stopPropagation()}>
+                    <a
+                      href={`https://www.google.com/maps/search/?api=1&query=${centre.location?.coordinates?.[1]},${centre.location?.coordinates?.[0]}`}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="btn btn-secondary btn-sm"
+                    >
+                      Directions
+                    </a>
+                    {isManager && <button className="btn btn-secondary btn-sm" onClick={() => openEdit(centre)}>Edit</button>}
+                    {isAdmin && <button className="btn btn-danger btn-sm" onClick={() => handleDelete(centreId)}>Delete</button>}
                   </div>
                 )}
               </div>
@@ -204,45 +327,106 @@ export default function RecycleCentres() {
         </div>
       )}
 
-      {/* Create / Edit modal */}
       {cModal !== null && (
         <Modal title={cModal === 'new' ? 'Add Recycling Centre' : 'Edit Centre'} onClose={() => setCModal(null)}>
           {err && <div className="error-msg" style={{ marginBottom: '1rem' }}>{err}</div>}
+          {wasteTypes.length === 0 && (
+            <div className="error-msg" style={{ marginBottom: '1rem' }}>
+              No waste categories are available. Add categories first before creating or updating a recycle centre.
+            </div>
+          )}
+
           <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-            <div className="form-group"><label className="form-label">Name</label>
-              <input className="form-input" value={cForm.name} onChange={e => setCForm(f => ({ ...f, name: e.target.value }))} /></div>
-            <div className="form-group"><label className="form-label">Address</label>
-              <input className="form-input" value={cForm.address} onChange={e => setCForm(f => ({ ...f, address: e.target.value }))} /></div>
-            <div className="grid-2" style={{ gap: '1rem' }}>
-              <div className="form-group"><label className="form-label">Longitude</label>
-                <input type="number" step="any" className="form-input" value={cForm.location.coordinates[0]}
-                  onChange={e => setCForm(f => ({ ...f, location: { ...f.location, coordinates: [parseFloat(e.target.value), f.location.coordinates[1]] } }))} /></div>
-              <div className="form-group"><label className="form-label">Latitude</label>
-                <input type="number" step="any" className="form-input" value={cForm.location.coordinates[1]}
-                  onChange={e => setCForm(f => ({ ...f, location: { ...f.location, coordinates: [f.location.coordinates[0], parseFloat(e.target.value)] } }))} /></div>
+            <div className="form-group">
+              <label className="form-label">Name</label>
+              <input className="form-input" value={cForm.name} onChange={e => setCForm(form => ({ ...form, name: e.target.value }))} />
             </div>
-            <div className="form-group"><label className="form-label">Operating Hours</label>
-              <input className="form-input" placeholder="e.g. Mon-Fri 08:00-18:00" value={cForm.operatingHours} onChange={e => setCForm(f => ({ ...f, operatingHours: e.target.value }))} /></div>
-            <div className="grid-2" style={{ gap: '1rem' }}>
-              <div className="form-group"><label className="form-label">Max Capacity (kg)</label>
-                <input type="number" className="form-input" value={cForm.maxCapacityKg} onChange={e => setCForm(f => ({ ...f, maxCapacityKg: e.target.value }))} /></div>
-              <div className="form-group"><label className="form-label">Current Load (kg)</label>
-                <input type="number" className="form-input" value={cForm.currentLoadKg} onChange={e => setCForm(f => ({ ...f, currentLoadKg: e.target.value }))} /></div>
+
+            <div className="form-group">
+              <label className="form-label">Address</label>
+              <input className="form-input" value={cForm.address} onChange={e => setCForm(form => ({ ...form, address: e.target.value }))} />
             </div>
+
+            <div className="grid-2" style={{ gap: '1rem' }}>
+              <div className="form-group">
+                <label className="form-label">Longitude</label>
+                <input
+                  type="number"
+                  step="any"
+                  className="form-input"
+                  value={cForm.location.coordinates[0]}
+                  onChange={e => setCForm(form => ({
+                    ...form,
+                    location: { ...form.location, coordinates: [e.target.value, form.location.coordinates[1]] },
+                  }))}
+                />
+              </div>
+
+              <div className="form-group">
+                <label className="form-label">Latitude</label>
+                <input
+                  type="number"
+                  step="any"
+                  className="form-input"
+                  value={cForm.location.coordinates[1]}
+                  onChange={e => setCForm(form => ({
+                    ...form,
+                    location: { ...form.location, coordinates: [form.location.coordinates[0], e.target.value] },
+                  }))}
+                />
+              </div>
+            </div>
+
+            <div className="form-group">
+              <label className="form-label">Operating Hours</label>
+              <input
+                className="form-input"
+                placeholder="e.g. Mon-Fri 08:00-18:00"
+                value={cForm.operatingHours}
+                onChange={e => setCForm(form => ({ ...form, operatingHours: e.target.value }))}
+              />
+            </div>
+
+            <div className="grid-2" style={{ gap: '1rem' }}>
+              <div className="form-group">
+                <label className="form-label">Max Capacity (kg)</label>
+                <input
+                  type="number"
+                  className="form-input"
+                  value={cForm.maxCapacityKg}
+                  onChange={e => setCForm(form => ({ ...form, maxCapacityKg: e.target.value }))}
+                />
+              </div>
+
+              <div className="form-group">
+                <label className="form-label">Current Load (kg)</label>
+                <input
+                  type="number"
+                  className="form-input"
+                  value={cForm.currentLoadKg}
+                  onChange={e => setCForm(form => ({ ...form, currentLoadKg: e.target.value }))}
+                />
+              </div>
+            </div>
+
             <div className="form-group">
               <label className="form-label">Accepted Waste Types</label>
               <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.4rem', marginTop: '0.25rem' }}>
-                {wasteTypes.map(wt => (
-                  <button key={wt} type="button"
-                    className={`badge ${cForm.acceptedWasteTypes.includes(wt) ? 'badge-green' : 'badge-teal'}`}
-                    onClick={() => toggleWasteType(wt)}
-                    style={{ cursor: 'pointer', padding: '0.3rem 0.7rem' }}>
-                    {cForm.acceptedWasteTypes.includes(wt) ? '✓ ' : ''}{wt}
+                {wasteTypes.map(wasteType => (
+                  <button
+                    key={wasteType}
+                    type="button"
+                    className={`badge ${cForm.acceptedWasteTypes.includes(wasteType) ? 'badge-green' : 'badge-teal'}`}
+                    onClick={() => toggleWasteType(wasteType)}
+                    style={{ cursor: 'pointer', padding: '0.3rem 0.7rem' }}
+                  >
+                    {cForm.acceptedWasteTypes.includes(wasteType) ? 'Selected: ' : ''}{wasteType}
                   </button>
                 ))}
               </div>
             </div>
-            <button className="btn btn-primary" onClick={saveCentre} disabled={saving}>
+
+            <button className="btn btn-primary" onClick={saveCentre} disabled={saving || wasteTypes.length === 0}>
               {saving ? <span className="spinner" /> : cModal === 'new' ? 'Create Centre' : 'Update Centre'}
             </button>
           </div>
