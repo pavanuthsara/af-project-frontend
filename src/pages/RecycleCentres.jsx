@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { getCentres, getCentresByWasteType, searchCentres, createCentre, deleteCentre, updateCentre } from '../api/centresApi';
+import { getCategories } from '../api/wasteApi';
 import useAuthStore from '../store/authStore';
 
 function Modal({ title, onClose, children }) {
@@ -16,8 +17,6 @@ function Modal({ title, onClose, children }) {
   );
 }
 
-const WASTE_TYPES = ['Plastic', 'Plastics', 'Paper', 'Glass', 'Metal', 'Organic', 'Electronic Waste', 'Hazardous Waste', 'solid waste'];
-
 const emptyForm = {
   name: '', address: '',
   location: { type: 'Point', coordinates: [0, 0] },
@@ -33,6 +32,7 @@ export default function RecycleCentres() {
   const isManager = user?.role === 'manager' || user?.role === 'admin';
 
   const [centres, setCentres] = useState([]);
+  const [wasteTypes, setWasteTypes] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
   const [searching, setSearching] = useState(false);
@@ -49,7 +49,21 @@ export default function RecycleCentres() {
     getCentres().then(r => { setCentres(r.data.recyclingCenters || []); setLoading(false); });
   };
 
-  useEffect(() => { load(); }, []);
+  const loadWasteTypes = async () => {
+    try {
+      const r = await getCategories({ page: 1, limit: 100 });
+      const raw = r.data?.categories || r.data?.data || [];
+      const names = [...new Set(raw.map(c => c?.name).filter(Boolean))];
+      setWasteTypes(names);
+    } catch {
+      setWasteTypes([]);
+    }
+  };
+
+  useEffect(() => {
+    load();
+    loadWasteTypes();
+  }, []);
 
   const handleSearch = async () => {
     if (!searchQuery.trim()) return load();
@@ -132,7 +146,7 @@ export default function RecycleCentres() {
         </div>
         <select className="form-select" style={{ width: 200 }} value={filterWaste} onChange={e => handleFilterWaste(e.target.value)}>
           <option value="">All waste types</option>
-          {WASTE_TYPES.map(w => <option key={w} value={w}>{w}</option>)}
+          {wasteTypes.map(w => <option key={w} value={w}>{w}</option>)}
         </select>
       </div>
 
@@ -218,7 +232,7 @@ export default function RecycleCentres() {
             <div className="form-group">
               <label className="form-label">Accepted Waste Types</label>
               <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.4rem', marginTop: '0.25rem' }}>
-                {WASTE_TYPES.map(wt => (
+                {wasteTypes.map(wt => (
                   <button key={wt} type="button"
                     className={`badge ${cForm.acceptedWasteTypes.includes(wt) ? 'badge-green' : 'badge-teal'}`}
                     onClick={() => toggleWasteType(wt)}
