@@ -59,6 +59,26 @@ function Modal({ title, onClose, children }) {
   );
 }
 
+function ConfirmDialog({ title, message, confirmLabel, cancelLabel = 'Cancel', onConfirm, onCancel, busy }) {
+  return (
+    <div className="modal-overlay" onClick={e => e.target === e.currentTarget && !busy && onCancel()}>
+      <div className="modal-box" style={{ maxWidth: 460 }}>
+        <div className="flex-between" style={{ marginBottom: '1rem' }}>
+          <h2 style={{ fontWeight: 700, fontSize: '1.1rem' }}>{title}</h2>
+          <button className="btn btn-secondary btn-sm" onClick={onCancel} disabled={busy}>X</button>
+        </div>
+        <p style={{ color: 'var(--text-secondary)', lineHeight: 1.6, marginBottom: '1.5rem' }}>{message}</p>
+        <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '0.75rem' }}>
+          <button className="btn btn-secondary" onClick={onCancel} disabled={busy}>{cancelLabel}</button>
+          <button className="btn btn-danger" onClick={onConfirm} disabled={busy} style={{ justifyContent: 'center', minWidth: 120 }}>
+            {busy ? <span className="spinner" /> : confirmLabel}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 const emptyForm = {
   name: '',
   address: '',
@@ -115,6 +135,8 @@ export default function RecycleCentres() {
   const [saving, setSaving] = useState(false);
   const [err, setErr] = useState('');
   const [toast, setToast] = useState(null);
+  const [confirmState, setConfirmState] = useState(null);
+  const [deletingId, setDeletingId] = useState('');
 
   const showToast = (message, type = 'success') => setToast({ message, type });
 
@@ -247,17 +269,19 @@ export default function RecycleCentres() {
   };
 
   const handleDelete = async (id) => {
-    if (!window.confirm('Delete this recycling centre?')) return;
-
+    setDeletingId(id);
     setPageErr('');
     try {
       await deleteCentre(id);
+      setConfirmState(null);
       showToast('Recycle centre deleted successfully.');
       load();
     } catch (e) {
       const message = e.response?.data?.message || e.response?.data?.error || 'Failed to delete recycle centre.';
       setPageErr(message);
       showToast(message, 'error');
+    } finally {
+      setDeletingId('');
     }
   };
 
@@ -273,6 +297,18 @@ export default function RecycleCentres() {
   return (
     <div>
       <Toast toast={toast} onClose={() => setToast(null)} />
+      {confirmState && (
+        <ConfirmDialog
+          title="Delete Recycle Centre"
+          message={`Delete "${confirmState.name}"? This action cannot be undone.`}
+          confirmLabel="Delete"
+          onCancel={() => {
+            if (!deletingId) setConfirmState(null);
+          }}
+          onConfirm={() => handleDelete(confirmState.id)}
+          busy={deletingId === confirmState.id}
+        />
+      )}
 
       <div className="flex-between page-header" style={{ flexWrap: 'wrap', gap: '1rem' }}>
         <div>
@@ -372,7 +408,14 @@ export default function RecycleCentres() {
                       Directions
                     </a>
                     {isManager && <button className="btn btn-secondary btn-sm" onClick={() => openEdit(centre)}>Edit</button>}
-                    {isAdmin && <button className="btn btn-danger btn-sm" onClick={() => handleDelete(centreId)}>Delete</button>}
+                    {isAdmin && (
+                      <button
+                        className="btn btn-danger btn-sm"
+                        onClick={() => setConfirmState({ id: centreId, name: centre.name || 'this recycle centre' })}
+                      >
+                        Delete
+                      </button>
+                    )}
                   </div>
                 )}
               </div>
