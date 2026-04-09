@@ -9,9 +9,7 @@ import {
   addQuestion, updateQuestion, deleteQuestion,
 } from '../api/quizApi';
 
-/* â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-   Helpers
-â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+/* Helpers */
 function extractArray(raw) {
   if (Array.isArray(raw)) return raw;
   if (Array.isArray(raw?.data)) return raw.data;
@@ -23,9 +21,7 @@ const BLANK_Q = { questionText: '', options: ['', '', ''], correctAnswer: '', ex
 const DIFFICULTIES = ['Beginner', 'Intermediate', 'Advanced'];
 const DIFF_COLOR = { Beginner: 'badge-green', Intermediate: 'badge-yellow', Advanced: 'badge-red' };
 
-/* â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-   Small reusable components
-â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+/* Small reusable components */
 function Modal({ title, wide, onClose, children }) {
   return (
     <div className="modal-overlay" onClick={e => e.target === e.currentTarget && onClose()}>
@@ -46,9 +42,7 @@ function ErrMsg({ msg }) {
     : null;
 }
 
-/* â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-   Question Form (used in add & edit)
-â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+/* Question Form (used in add and edit) */
 function QuestionForm({ initial, quizId, onSaved, onCancel }) {
   const [form, setForm] = useState(initial || BLANK_Q);
   const [saving, setSaving] = useState(false);
@@ -187,9 +181,7 @@ function QuestionForm({ initial, quizId, onSaved, onCancel }) {
   );
 }
 
-/* â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-   Question Manager Modal (per quiz)
-â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+/* Question Manager Modal (per quiz) */
 function QuestionManagerModal({ quiz, onClose, onQuizUpdated }) {
   const [questions, setQuestions] = useState([]);
   const [loadingQs, setLoadingQs] = useState(true);
@@ -309,7 +301,7 @@ function QuestionManagerModal({ quiz, onClose, onQuizUpdated }) {
         </div>
       ) : questions.length === 0 ? (
         <div className="empty-state" style={{ padding: '2.5rem 1rem' }}>
-          <div className="empty-state-icon">?</div>
+          <div className="empty-state-icon">Q</div>
           <p>No questions yet.</p>
           <p style={{ fontSize: '0.85rem', marginTop: '0.25rem' }}>Click "Add Question" above to get started.</p>
         </div>
@@ -377,9 +369,7 @@ function QuestionManagerModal({ quiz, onClose, onQuizUpdated }) {
   );
 }
 
-/* â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-   Main AdminPanel
-â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+/* Main AdminPanel */
 const SECTIONS = ['Categories', 'Items', 'Quizzes'];
 
 export default function AdminPanel() {
@@ -505,9 +495,7 @@ export default function AdminPanel() {
         ))}
       </div>
 
-      {/* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
-          CATEGORIES
-      â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */}
+      {/* Categories */}
       {section === 'Categories' && (
         <>
           <div className="flex-between" style={{ marginBottom: '1.5rem' }}>
@@ -542,9 +530,7 @@ export default function AdminPanel() {
         </>
       )}
 
-      {/* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
-          ITEMS
-      â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */}
+      {/* Items */}
       {section === 'Items' && (
         <>
           <div className="flex-between" style={{ marginBottom: '1.5rem' }}>
@@ -582,9 +568,7 @@ export default function AdminPanel() {
         </>
       )}
 
-      {/* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
-          QUIZZES
-      â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */}
+      {/* Quizzes */}
       {section === 'Quizzes' && (
         <>
           <div className="flex-between" style={{ marginBottom: '1.5rem' }}>
@@ -671,9 +655,7 @@ export default function AdminPanel() {
         </>
       )}
 
-      {/* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
-          MODALS
-      â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */}
+      {/* Modals */}
 
       {/* Question Manager Modal */}
       {qManager && (
