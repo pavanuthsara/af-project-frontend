@@ -239,10 +239,15 @@ export default function DisposalLog() {
                         // Extract waste item name - handle both object and string formats
                         let wasteName = 'Unknown';
                         if (typeof d.wasteId === 'object' && d.wasteId !== null) {
-                          // If wasteId is an object with a name property
-                          wasteName = d.wasteId.name || d.wasteId._name || JSON.stringify(d.wasteId).substring(0, 30);
+                          wasteName = d.wasteId.name || 'Unknown';
                         } else if (typeof d.wasteId === 'string') {
-                          wasteName = d.wasteId;
+                          const nameMatch = d.wasteId.match(/name:\s*['"]([^'"]+)['"]/);
+                          if (nameMatch) {
+                            wasteName = nameMatch[1];
+                          } else {
+                            const foundItem = wasteItems.find(w => d.wasteId === w._id || d.wasteId.includes(w._id));
+                            wasteName = foundItem ? foundItem.name : d.wasteId;
+                          }
                         }
                         
                         return (
