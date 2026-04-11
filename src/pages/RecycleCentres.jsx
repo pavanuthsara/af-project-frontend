@@ -119,7 +119,7 @@ function validateCentre(payload, validWasteTypes) {
 export default function RecycleCentres() {
   const { user } = useAuthStore();
   const isAdmin = user?.role === 'admin';
-  const isManager = user?.role === 'manager';
+  const isManager = user?.role === 'manager' || user?.role === 'admin';
 
   const [centres, setCentres] = useState([]);
   const [wasteTypes, setWasteTypes] = useState([]);
