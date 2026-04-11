@@ -20,7 +20,11 @@ export default function Dashboard() {
       getWasteStats(),
       getCertificates(),
     ]).then(([s, w, c]) => {
-      if (s.status === 'fulfilled') setStats(s.value.data.data);
+      if (s.status === 'fulfilled') {
+        let statsData = s.value.data.data;
+        if (Array.isArray(statsData)) statsData = statsData[0] || {};
+        setStats(statsData || {});
+      }
       if (w.status === 'fulfilled') setWasteStats(w.value.data.data || []);
       if (c.status === 'fulfilled') setCerts(c.value.data.data);
       setLoading(false);
@@ -70,21 +74,21 @@ export default function Dashboard() {
           <div className="stat-card">
             <div style={{ fontSize: '2rem', marginBottom: '0.5rem' }}>🌱</div>
             <div style={{ fontSize: '1.75rem', fontWeight: 800, color: 'var(--accent-green)' }}>
-              {stats?.totalCo2Saved?.toFixed(2) ?? '0'} <span style={{ fontSize: '0.9rem' }}>kg</span>
+              {(stats?.totalCo2Saved || stats?.totalCo2 || 0).toFixed(2)} <span style={{ fontSize: '0.9rem' }}>kg</span>
             </div>
             <div style={{ color: 'var(--text-muted)', fontSize: '0.85rem', marginTop: '0.25rem' }}>CO₂ Saved</div>
           </div>
           <div className="stat-card">
             <div style={{ fontSize: '2rem', marginBottom: '0.5rem' }}>⚖️</div>
             <div style={{ fontSize: '1.75rem', fontWeight: 800, color: 'var(--accent-teal)' }}>
-              {stats?.totalWeight?.toFixed(1) ?? '0'} <span style={{ fontSize: '0.9rem' }}>kg</span>
+              {(stats?.totalWeight || stats?.weight || 0).toFixed(1)} <span style={{ fontSize: '0.9rem' }}>kg</span>
             </div>
             <div style={{ color: 'var(--text-muted)', fontSize: '0.85rem', marginTop: '0.25rem' }}>Total Recycled</div>
           </div>
           <div className="stat-card">
             <div style={{ fontSize: '2rem', marginBottom: '0.5rem' }}>♻️</div>
             <div style={{ fontSize: '1.75rem', fontWeight: 800, color: 'var(--accent-lime)' }}>
-              {stats?.totalDisposals ?? '0'}
+              {stats?.totalDisposals || stats?.count || stats?.total || 0}
             </div>
             <div style={{ color: 'var(--text-muted)', fontSize: '0.85rem', marginTop: '0.25rem' }}>Disposal Events</div>
           </div>
