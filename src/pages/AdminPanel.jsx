@@ -661,6 +661,7 @@ export default function AdminPanel() {
       {qManager && (
         <QuestionManagerModal
           key={qManager._id}
+          quiz={qManager}
           onClose={() => setQManager(null)}
           onQuizUpdated={onQuizzesUpdated}
         />
