@@ -92,7 +92,25 @@ export default function DisposalLog() {
     });
   };
 
-  const loadStats = () => getDisposalStats().then(r => setStats(r.data.data));
+  const loadStats = () => getDisposalStats().then(r => {
+    let s = r.data.data || r.data || {};
+    if (Array.isArray(s)) s = s[0] || {};
+
+    // Fallback in case backend returns empty/0 stats but history exists
+    if (!s.totalDisposals && history.length > 0) {
+      let co2 = 0, w = 0;
+      const m = {};
+      history.forEach(d => {
+        co2 += (d.co2Saved || 0);
+        w += (d.weight || 0);
+        const method = d.disposalMethod || 'unknown';
+        m[method] = (m[method] || 0) + 1;
+      });
+      s = { totalCo2Saved: co2, totalWeight: w, totalDisposals: history.length, byMethod: m };
+    }
+
+    setStats(s);
+  }).catch(err => console.error("Error loading stats:", err));
 
   useEffect(() => { if (tab === 'history') loadHistory(); }, [tab, hPage, startDate, endDate]);
   useEffect(() => { if (tab === 'stats') loadStats(); }, [tab]);
@@ -239,10 +257,15 @@ export default function DisposalLog() {
                         // Extract waste item name - handle both object and string formats
                         let wasteName = 'Unknown';
                         if (typeof d.wasteId === 'object' && d.wasteId !== null) {
-                          // If wasteId is an object with a name property
-                          wasteName = d.wasteId.name || d.wasteId._name || JSON.stringify(d.wasteId).substring(0, 30);
+                          wasteName = d.wasteId.name || 'Unknown';
                         } else if (typeof d.wasteId === 'string') {
-                          wasteName = d.wasteId;
+                          const nameMatch = d.wasteId.match(/name:\s*['"]([^'"]+)['"]/);
+                          if (nameMatch) {
+                            wasteName = nameMatch[1];
+                          } else {
+                            const foundItem = wasteItems.find(w => d.wasteId === w._id || d.wasteId.includes(w._id));
+                            wasteName = foundItem ? foundItem.name : d.wasteId;
+                          }
                         }
                         
                         return (
@@ -282,9 +305,9 @@ export default function DisposalLog() {
       {tab === 'stats' && stats && (
         <div>
           <div className="grid-3" style={{ marginBottom: '2rem' }}>
-            <div className="stat-card"><div style={{ fontSize: '1.8rem', fontWeight: 800, color: 'var(--accent-green)' }}>{stats.totalCo2Saved?.toFixed(2)} <span style={{ fontSize: '0.9rem' }}>kg</span></div><div style={{ color: 'var(--text-muted)', fontSize: '0.85rem', marginTop: '0.25rem' }}>Total CO₂ Saved</div></div>
-            <div className="stat-card"><div style={{ fontSize: '1.8rem', fontWeight: 800, color: 'var(--accent-teal)' }}>{stats.totalWeight?.toFixed(2)} <span style={{ fontSize: '0.9rem' }}>kg</span></div><div style={{ color: 'var(--text-muted)', fontSize: '0.85rem', marginTop: '0.25rem' }}>Total Weight</div></div>
-            <div className="stat-card"><div style={{ fontSize: '1.8rem', fontWeight: 800, color: 'var(--accent-lime)' }}>{stats.totalDisposals}</div><div style={{ color: 'var(--text-muted)', fontSize: '0.85rem', marginTop: '0.25rem' }}>Total Disposals</div></div>
+            <div className="stat-card"><div style={{ fontSize: '1.8rem', fontWeight: 800, color: 'var(--accent-green)' }}>{(stats.totalCo2Saved || stats.totalCo2 || 0).toFixed(2)} <span style={{ fontSize: '0.9rem' }}>kg</span></div><div style={{ color: 'var(--text-muted)', fontSize: '0.85rem', marginTop: '0.25rem' }}>Total CO₂ Saved</div></div>
+            <div className="stat-card"><div style={{ fontSize: '1.8rem', fontWeight: 800, color: 'var(--accent-teal)' }}>{(stats.totalWeight || stats.weight || 0).toFixed(2)} <span style={{ fontSize: '0.9rem' }}>kg</span></div><div style={{ color: 'var(--text-muted)', fontSize: '0.85rem', marginTop: '0.25rem' }}>Total Weight</div></div>
+            <div className="stat-card"><div style={{ fontSize: '1.8rem', fontWeight: 800, color: 'var(--accent-lime)' }}>{stats.totalDisposals || stats.count || stats.total || 0}</div><div style={{ color: 'var(--text-muted)', fontSize: '0.85rem', marginTop: '0.25rem' }}>Total Disposals</div></div>
           </div>
           <div className="card">
             <h3 style={{ fontWeight: 700, marginBottom: '1.5rem' }}>Disposal by Method</h3>
