@@ -30,6 +30,7 @@ export default function WasteLibrary() {
   const [items, setItems] = useState([]);
   const [itemLoading, setItemLoading] = useState(true);
   const [itemModal, setItemModal] = useState(null);
+  const [deleteModal, setDeleteModal] = useState(null); // null | { type, id, name }
   const [search, setSearch] = useState('');
   const [filterRecyclable, setFilterRecyclable] = useState('');
   const [filterHazardous, setFilterHazardous] = useState('');
@@ -38,7 +39,7 @@ export default function WasteLibrary() {
 
   // Forms
   const [catForm, setCatForm] = useState({ name: '', description: '', recyclable: true, hazardous: false, compostable: false });
-  const [itemForm, setItemForm] = useState({ name: '', description: '', category: '', recyclable: true, hazardous: false, compostable: false });
+  const [itemForm, setItemForm] = useState({ name: '', description: '', category: '' });
   const [saving, setSaving] = useState(false);
   const [formErr, setFormErr] = useState('');
 
@@ -71,13 +72,12 @@ export default function WasteLibrary() {
     setSaving(false);
   };
   const deleteCat = async (id) => {
-    if (!window.confirm('Delete this category and all its items?')) return;
     await deleteCategory(id); loadCats();
   };
 
   // Item CRUD
-  const openNewItem = () => { setItemForm({ name: '', description: '', category: cats[0]?._id || '', recyclable: true, hazardous: false, compostable: false }); setItemModal('new'); setFormErr(''); };
-  const openEditItem = (item) => { setItemForm({ name: item.name, description: item.description, category: item.category?._id || '', recyclable: item.recyclable, hazardous: item.hazardous, compostable: item.compostable }); setItemModal(item); setFormErr(''); };
+  const openNewItem = () => { setItemForm({ name: '', description: '', category: cats[0]?._id || '' }); setItemModal('new'); setFormErr(''); };
+  const openEditItem = (item) => { setItemForm({ name: item.name, description: item.description, category: item.category?._id || item.category || '' }); setItemModal(item); setFormErr(''); };
   const saveItem = async () => {
     setSaving(true); setFormErr('');
     try {
@@ -88,11 +88,27 @@ export default function WasteLibrary() {
     setSaving(false);
   };
   const deleteItem2 = async (id) => {
-    if (!window.confirm('Delete this item?')) return;
     await deleteItem(id); loadItems();
   };
 
-  const boolCheck = (v) => ({ true: true, false: false }[v] ?? undefined);
+  const openDeleteModal = (type, entity) => {
+    setDeleteModal({ type, id: entity._id, name: entity.name });
+    setFormErr('');
+  };
+
+  const confirmDelete = async () => {
+    if (!deleteModal) return;
+
+    setSaving(true);
+    try {
+      if (deleteModal.type === 'category') await deleteCat(deleteModal.id);
+      if (deleteModal.type === 'item') await deleteItem2(deleteModal.id);
+      setDeleteModal(null);
+    } catch (e) {
+      setFormErr(e.response?.data?.error || 'Error');
+    }
+    setSaving(false);
+  };
 
   return (
     <div>
@@ -133,7 +149,7 @@ export default function WasteLibrary() {
               {isAdmin && (
                 <div style={{ display: 'flex', gap: '0.5rem', marginTop: '1rem' }}>
                   <button className="btn btn-secondary btn-sm" onClick={() => openEditCat(c)}>✏️ Edit</button>
-                  <button className="btn btn-danger btn-sm" onClick={() => deleteCat(c._id)}>🗑 Delete</button>
+                  <button className="btn btn-danger btn-sm" onClick={() => openDeleteModal('category', c)}>🗑 Delete</button>
                 </div>
               )}
             </div>
@@ -148,12 +164,12 @@ export default function WasteLibrary() {
             <input className="form-input" placeholder="🔍 Search items…" style={{ flex: 1, minWidth: 200 }}
               value={search} onChange={e => { setSearch(e.target.value); setPage(1); }} />
             <select className="form-select" style={{ width: 150 }} value={filterRecyclable} onChange={e => { setFilterRecyclable(e.target.value); setPage(1); }}>
-              <option value="">All recyclable</option>
+              <option value="">All</option>
               <option value="true">Recyclable</option>
-              <option value="false">Not recyclable</option>
+              <option value="false">Non-recyclable</option>
             </select>
             <select className="form-select" style={{ width: 150 }} value={filterHazardous} onChange={e => { setFilterHazardous(e.target.value); setPage(1); }}>
-              <option value="">All hazardous</option>
+              <option value="">All</option>
               <option value="true">Hazardous</option>
               <option value="false">Non-hazardous</option>
             </select>
@@ -164,30 +180,36 @@ export default function WasteLibrary() {
                 <table>
                   <thead><tr><th>Name</th><th>Category</th><th>Flags</th>{isAdmin && <th>Actions</th>}</tr></thead>
                   <tbody>
-                    {items.map(item => (
-                      <tr key={item._id}>
-                        <td>
-                          <div style={{ fontWeight: 600 }}>{item.name}</div>
-                          <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>{item.description}</div>
-                        </td>
-                        <td><span className="badge badge-teal">{item.category?.name}</span></td>
-                        <td>
-                          <div style={{ display: 'flex', gap: '0.3rem', flexWrap: 'wrap' }}>
-                            {item.recyclable && <span className="badge badge-green">♻️</span>}
-                            {item.hazardous && <span className="badge badge-red">☣️</span>}
-                            {item.compostable && <span className="badge badge-lime">🌱</span>}
-                          </div>
-                        </td>
-                        {isAdmin && (
+                    {items.map(item => {
+                      const itemCategory = typeof item.category === 'object'
+                        ? item.category
+                        : cats.find(c => c._id === item.category);
+
+                      return (
+                        <tr key={item._id}>
                           <td>
-                            <div style={{ display: 'flex', gap: '0.5rem' }}>
-                              <button className="btn btn-secondary btn-sm" onClick={() => openEditItem(item)}>✏️</button>
-                              <button className="btn btn-danger btn-sm" onClick={() => deleteItem2(item._id)}>🗑</button>
+                            <div style={{ fontWeight: 600 }}>{item.name}</div>
+                            <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>{item.description}</div>
+                          </td>
+                          <td><span className="badge badge-teal">{itemCategory?.name || 'Unknown'}</span></td>
+                          <td>
+                            <div style={{ display: 'flex', gap: '0.3rem', flexWrap: 'wrap' }}>
+                              {itemCategory?.recyclable && <span className="badge badge-green">♻️ Recyclable</span>}
+                              {itemCategory?.hazardous && <span className="badge badge-red">☣️ Hazardous</span>}
+                              {itemCategory?.compostable && <span className="badge badge-lime">🌱 Compostable</span>}
                             </div>
                           </td>
-                        )}
-                      </tr>
-                    ))}
+                          {isAdmin && (
+                            <td>
+                              <div style={{ display: 'flex', gap: '0.5rem' }}>
+                                <button className="btn btn-secondary btn-sm" onClick={() => openEditItem(item)}>✏️</button>
+                                <button className="btn btn-danger btn-sm" onClick={() => openDeleteModal('item', item)}>🗑</button>
+                              </div>
+                            </td>
+                          )}
+                        </tr>
+                      );
+                    })}
                   </tbody>
                 </table>
               </div>
@@ -241,16 +263,32 @@ export default function WasteLibrary() {
               <select className="form-select" value={itemForm.category} onChange={e => setItemForm(f => ({ ...f, category: e.target.value }))}>
                 {cats.map(c => <option key={c._id} value={c._id}>{c.name}</option>)}
               </select></div>
-            {['recyclable', 'hazardous', 'compostable'].map(key => (
-              <label key={key} style={{ display: 'flex', gap: '0.5rem', alignItems: 'center', cursor: 'pointer', fontSize: '0.9rem' }}>
-                <input type="checkbox" checked={itemForm[key]} onChange={e => setItemForm(f => ({ ...f, [key]: e.target.checked }))}
-                  style={{ accentColor: 'var(--accent-green)' }} />
-                {key.charAt(0).toUpperCase() + key.slice(1)}
-              </label>
-            ))}
+            <div style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>
+              Item flags are inherited from the selected category.
+            </div>
             <button className="btn btn-primary" onClick={saveItem} disabled={saving} style={{ marginTop: '0.5rem' }}>
               {saving ? <span className="spinner" /> : itemModal === 'new' ? 'Create' : 'Update'}
             </button>
+          </div>
+        </Modal>
+      )}
+
+      {/* Delete confirmation modal */}
+      {deleteModal !== null && (
+        <Modal title={`Delete ${deleteModal.type === 'category' ? 'Category' : 'Item'}`} onClose={() => setDeleteModal(null)}>
+          {formErr && <div className="error-msg" style={{ marginBottom: '1rem' }}>{formErr}</div>}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+            <p style={{ color: 'var(--text-secondary)', fontSize: '0.9rem' }}>
+              {deleteModal.type === 'category'
+                ? `Delete "${deleteModal.name}" and all items under it? This action cannot be undone.`
+                : `Delete "${deleteModal.name}"? This action cannot be undone.`}
+            </p>
+            <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '0.75rem' }}>
+              <button className="btn btn-secondary" onClick={() => setDeleteModal(null)} disabled={saving}>Cancel</button>
+              <button className="btn btn-danger" onClick={confirmDelete} disabled={saving}>
+                {saving ? <span className="spinner" /> : 'Delete'}
+              </button>
+            </div>
           </div>
         </Modal>
       )}
