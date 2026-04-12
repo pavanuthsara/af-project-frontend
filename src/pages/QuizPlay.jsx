@@ -17,17 +17,26 @@ export default function QuizPlay() {
   const [submitting, setSubmitting] = useState(false);
   const [result, setResult] = useState(null);
   const [err, setErr] = useState('');
+  const [noQuestions, setNoQuestions] = useState(false);
 
   const load = (l) => {
-    setLoading(true); setErr('');
+    setLoading(true); setErr(''); setNoQuestions(false);
     playQuiz(id, l).then(r => {
-      const d = r.data;
-      setQuizMeta({ title: d.title, description: d.description });
-      setQuestions(d.questions || []);
+      // API response shape: { success, data: { quiz, questions } }
+      const d = r.data?.data;
+      setQuizMeta({ title: d?.quiz?.title, description: d?.quiz?.description });
+      setQuestions(d?.questions || []);
       setLoading(false);
     }).catch(e => {
-      setErr(e.response?.data?.message || 'Failed to load quiz');
-      setLoading(false);
+      const msg = e.response?.data?.message || '';
+      // Backend throws 400 with this message when there are no questions
+      if (e.response?.status === 400 && msg.toLowerCase().includes('no questions')) {
+        setNoQuestions(true);
+        setLoading(false);
+      } else {
+        setErr(msg || 'Failed to load quiz');
+        setLoading(false);
+      }
     });
   };
 
@@ -71,6 +80,16 @@ export default function QuizPlay() {
   const q = questions[current];
 
   if (loading) return <div className="flex-center" style={{ height: '60vh' }}><span className="spinner" style={{ width: 48, height: 48 }} /></div>;
+  if (noQuestions) return (
+    <div className="empty-state">
+      <div style={{ fontSize: '3.5rem', marginBottom: '0.5rem' }}>📭</div>
+      <p style={{ fontWeight: 700, fontSize: '1.1rem', marginBottom: '0.4rem' }}>No Questions Yet</p>
+      <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem', marginBottom: '1.25rem' }}>
+        This quiz doesn't have any questions added yet. Please check back later.
+      </p>
+      <button className="btn btn-secondary" onClick={() => navigate('/quizzes')}>← Back to Quizzes</button>
+    </div>
+  );
   if (err) return <div className="empty-state"><div style={{ fontSize: '3rem' }}>⚠️</div><p>{err}</p><button className="btn btn-secondary" onClick={() => navigate('/quizzes')} style={{ marginTop: '1rem' }}>Back to Quizzes</button></div>;
 
   // Result screen
