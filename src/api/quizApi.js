@@ -10,3 +10,5 @@ export const createQuiz = (data) => api.post('/api/quizzes', data);
 export const addQuestion = (quizId, data) => api.post(`/api/quizzes/${quizId}/questions`, data);
 export const updateQuestion = (questionId, data) => api.put(`/api/quizzes/questions/${questionId}`, data);
 export const deleteQuestion = (questionId) => api.delete(`/api/quizzes/questions/${questionId}`);
+// Admin-only: fetch questions with correctAnswer & explanation for the edit panel
+export const getQuestionsAdmin = (quizId) => api.get(`/api/quizzes/${quizId}/questions`);

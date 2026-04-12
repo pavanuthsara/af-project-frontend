@@ -5,8 +5,8 @@ import {
   createItem, updateItem, deleteItem,
 } from '../api/wasteApi';
 import {
-  getQuizzes, createQuiz, playQuiz,
-  addQuestion, updateQuestion, deleteQuestion,
+  getQuizzes, createQuiz,
+  addQuestion, updateQuestion, deleteQuestion, getQuestionsAdmin,
 } from '../api/quizApi';
 
 /* ─────────────────────────────────────────
@@ -196,14 +196,14 @@ function QuestionManagerModal({ quiz, onClose, onQuizUpdated }) {
   const [mode, setMode] = useState('list'); // 'list' | 'add' | { edit: questionObj }
   const [deleting, setDeleting] = useState(null);
 
-  // Load questions on mount via playQuiz (list endpoint doesn't embed questions)
+  // Load questions on mount using the admin endpoint (includes correctAnswer & explanation)
   useEffect(() => {
     setLoadingQs(true);
-    playQuiz(quiz._id)
+    getQuestionsAdmin(quiz._id)
       .then(r => {
-        const d = r.data;
-        // Response shape: { title, description, questions: [...] } or similar
-        const qs = d?.questions || d?.data?.questions || [];
+        const d = r.data?.data;
+        // Response shape: { quiz: {...}, questions: [...] }
+        const qs = d?.questions || [];
         setQuestions(qs);
       })
       .catch(() => setQuestions([]))
