@@ -7,6 +7,7 @@ export const getCertificates = () => api.get('/api/quizzes/certificates');
 
 // Admin quiz management
 export const createQuiz = (data) => api.post('/api/quizzes', data);
+export const deleteQuiz = (quizId) => api.delete(`/api/quizzes/${quizId}`);
 export const addQuestion = (quizId, data) => api.post(`/api/quizzes/${quizId}/questions`, data);
 export const updateQuestion = (questionId, data) => api.put(`/api/quizzes/questions/${questionId}`, data);
 export const deleteQuestion = (questionId) => api.delete(`/api/quizzes/questions/${questionId}`);
