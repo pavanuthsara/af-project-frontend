@@ -160,19 +160,25 @@ export default function WasteLibrary() {
       {/* ── ITEMS ── */}
       {tab === 'items' && (
         <>
-          <div style={{ display: 'flex', gap: '1rem', marginBottom: '1.5rem', flexWrap: 'wrap' }}>
+          <div style={{ display: 'flex', gap: '1rem', marginBottom: '1.5rem', flexWrap: 'wrap', alignItems: 'flex-end' }}>
             <input className="form-input" placeholder="🔍 Search items…" style={{ flex: 1, minWidth: 200 }}
               value={search} onChange={e => { setSearch(e.target.value); setPage(1); }} />
-            <select className="form-select" style={{ width: 150 }} value={filterRecyclable} onChange={e => { setFilterRecyclable(e.target.value); setPage(1); }}>
-              <option value="">All</option>
-              <option value="true">Recyclable</option>
-              <option value="false">Non-recyclable</option>
-            </select>
-            <select className="form-select" style={{ width: 150 }} value={filterHazardous} onChange={e => { setFilterHazardous(e.target.value); setPage(1); }}>
-              <option value="">All</option>
-              <option value="true">Hazardous</option>
-              <option value="false">Non-hazardous</option>
-            </select>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.3rem' }}>
+              <label style={{ fontSize: '0.85rem', fontWeight: 600, color: 'var(--text-secondary)' }}>Recyclability</label>
+              <select className="form-select" style={{ width: 150 }} value={filterRecyclable} onChange={e => { setFilterRecyclable(e.target.value); setPage(1); }}>
+                <option value="">All</option>
+                <option value="true">Recyclable</option>
+                <option value="false">Non-recyclable</option>
+              </select>
+            </div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.3rem' }}>
+              <label style={{ fontSize: '0.85rem', fontWeight: 600, color: 'var(--text-secondary)' }}>Hazard Level</label>
+              <select className="form-select" style={{ width: 150 }} value={filterHazardous} onChange={e => { setFilterHazardous(e.target.value); setPage(1); }}>
+                <option value="">All</option>
+                <option value="true">Hazardous</option>
+                <option value="false">Non-hazardous</option>
+              </select>
+            </div>
           </div>
           {itemLoading ? <div className="flex-center" style={{ height: 200 }}><span className="spinner" /></div> : (
             <>
