@@ -1,0 +1,28 @@
+[
+  {
+    "_id": "centre-1",
+    "name": "Colombo Plastic Hub",
+    "address": "12 Marine Drive, Colombo",
+    "location": {
+      "type": "Point",
+      "coordinates": [79.8612, 6.9271]
+    },
+    "acceptedWasteTypes": ["Plastic", "Paper"],
+    "operatingHours": "Mon-Fri 08:00-18:00",
+    "maxCapacityKg": 1000,
+    "currentLoadKg": 400
+  },
+  {
+    "_id": "centre-2",
+    "name": "Kandy E-Waste Point",
+    "address": "44 Peradeniya Road, Kandy",
+    "location": {
+      "type": "Point",
+      "coordinates": [80.6337, 7.2906]
+    },
+    "acceptedWasteTypes": ["E-Waste"],
+    "operatingHours": "Daily 09:00-17:00",
+    "maxCapacityKg": 500,
+    "currentLoadKg": 125
+  }
+]
