@@ -231,10 +231,10 @@ test.describe("Disposal Log Tests", () => {
 
     // 6. Assert edit modal is visible
     await expect(page.locator("text=Edit Disposal Log")).toBeVisible();
-    await expect(page.locator("text=Quantity")).toBeVisible();
-    await expect(page.locator("text=Weight")).toBeVisible();
-    await expect(page.locator("text=Unit")).toBeVisible();
-    await expect(page.locator("text=Guideline")).toBeVisible();
+    await expect(page.locator("label.form-label:has-text('Quantity')")).toBeVisible();
+    await expect(page.locator("label.form-label:has-text('Weight')")).toBeVisible();
+    await expect(page.locator("label.form-label:has-text('Unit')")).toBeVisible();
+    await expect(page.locator("label.form-label:has-text('Guideline')")).toBeVisible();
 
     // 7. Update the quantity value
     const modalQuantityInput = page.locator('.modal-box input[type="number"]').first();
