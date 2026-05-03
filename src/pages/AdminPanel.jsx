@@ -5,8 +5,8 @@ import {
   createItem, updateItem, deleteItem,
 } from '../api/wasteApi';
 import {
-  getQuizzes, createQuiz, playQuiz,
-  addQuestion, updateQuestion, deleteQuestion,
+  getQuizzes, createQuiz, deleteQuiz,
+  addQuestion, updateQuestion, deleteQuestion, getQuestionsAdmin,
 } from '../api/quizApi';
 
 /* ─────────────────────────────────────────
@@ -22,6 +22,77 @@ function extractArray(raw) {
 const BLANK_Q = { questionText: '', options: ['', '', ''], correctAnswer: '', explanation: '' };
 const DIFFICULTIES = ['Beginner', 'Intermediate', 'Advanced'];
 const DIFF_COLOR = { Beginner: 'badge-green', Intermediate: 'badge-yellow', Advanced: 'badge-red' };
+
+/* ─────────────────────────────────────────
+   Delete Quiz Confirmation Modal
+───────────────────────────────────────── */
+function DeleteQuizModal({ quiz, onConfirm, onCancel, deleting }) {
+  const qCount = quiz.questions?.length ?? 0;
+  return (
+    <div className="modal-overlay" onClick={e => e.target === e.currentTarget && !deleting && onCancel()}>
+      <div className="modal-box" style={{ maxWidth: 480 }}>
+        {/* Header */}
+        <div style={{ textAlign: 'center', marginBottom: '1.5rem' }}>
+          <div style={{ fontSize: '3rem', marginBottom: '0.75rem' }}>⚠️</div>
+          <h2 style={{ fontWeight: 800, fontSize: '1.2rem', color: 'var(--danger)', marginBottom: '0.35rem' }}>
+            Delete Quiz?
+          </h2>
+          <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem' }}>
+            This action <strong style={{ color: 'var(--text-primary)' }}>cannot be undone</strong>.
+          </p>
+        </div>
+
+        {/* Quiz summary card */}
+        <div style={{
+          background: 'rgba(239,68,68,0.06)', border: '1px solid rgba(239,68,68,0.25)',
+          borderRadius: 12, padding: '1rem 1.25rem', marginBottom: '1.5rem',
+        }}>
+          <div style={{ fontWeight: 700, fontSize: '1rem', marginBottom: '0.4rem' }}>{quiz.title}</div>
+          {quiz.description && (
+            <div style={{ fontSize: '0.85rem', color: 'var(--text-muted)', marginBottom: '0.6rem' }}>
+              {quiz.description}
+            </div>
+          )}
+          <div style={{ display: 'flex', gap: '1rem', fontSize: '0.82rem' }}>
+            <span style={{
+              padding: '0.2rem 0.65rem', borderRadius: 20,
+              background: 'var(--bg-secondary)', border: '1px solid var(--border)',
+              color: 'var(--text-secondary)', fontWeight: 600,
+            }}>{quiz.difficulty}</span>
+            <span style={{
+              padding: '0.2rem 0.65rem', borderRadius: 20,
+              background: qCount > 0 ? 'rgba(239,68,68,0.12)' : 'var(--bg-secondary)',
+              border: `1px solid ${qCount > 0 ? 'rgba(239,68,68,0.3)' : 'var(--border)'}`,
+              color: qCount > 0 ? 'var(--danger)' : 'var(--text-muted)', fontWeight: 600,
+            }}>
+              🗑 {qCount} question{qCount !== 1 ? 's' : ''} will also be deleted
+            </span>
+          </div>
+        </div>
+
+        {/* Actions */}
+        <div style={{ display: 'flex', gap: '0.75rem' }}>
+          <button
+            className="btn btn-secondary"
+            onClick={onCancel}
+            disabled={deleting}
+            style={{ flex: 1, justifyContent: 'center' }}
+          >
+            Cancel
+          </button>
+          <button
+            className="btn btn-danger"
+            onClick={onConfirm}
+            disabled={deleting}
+            style={{ flex: 1, justifyContent: 'center' }}
+          >
+            {deleting ? <span className="spinner" /> : '🗑 Yes, Delete Quiz'}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
 
 /* ─────────────────────────────────────────
    Small reusable components
@@ -196,14 +267,14 @@ function QuestionManagerModal({ quiz, onClose, onQuizUpdated }) {
   const [mode, setMode] = useState('list'); // 'list' | 'add' | { edit: questionObj }
   const [deleting, setDeleting] = useState(null);
 
-  // Load questions on mount via playQuiz (list endpoint doesn't embed questions)
+  // Load questions on mount using the admin endpoint (includes correctAnswer & explanation)
   useEffect(() => {
     setLoadingQs(true);
-    playQuiz(quiz._id)
+    getQuestionsAdmin(quiz._id)
       .then(r => {
-        const d = r.data;
-        // Response shape: { title, description, questions: [...] } or similar
-        const qs = d?.questions || d?.data?.questions || [];
+        const d = r.data?.data;
+        // Response shape: { quiz: {...}, questions: [...] }
+        const qs = d?.questions || [];
         setQuestions(qs);
       })
       .catch(() => setQuestions([]))
@@ -408,6 +479,8 @@ export default function AdminPanel() {
   const [quizSaving, setQuizSaving] = useState(false);
   const [quizErr, setQuizErr] = useState('');
   const [qManager, setQManager] = useState(null); // quiz for question manager
+  const [deleteQuizTarget, setDeleteQuizTarget] = useState(null); // quiz pending deletion
+  const [deletingQuiz, setDeletingQuiz] = useState(false);
 
   /* ── Loaders ── */
   const loadCats = () => getCategories({ limit: 100 }).then(r => setCats(r.data.data || []));
@@ -461,6 +534,22 @@ export default function AdminPanel() {
       setQuizModal(false); loadQuizzes();
     } catch (e) { setQuizErr(e.response?.data?.message || 'Error creating quiz'); }
     setQuizSaving(false);
+  };
+
+  const handleDeleteQuiz = async () => {
+    if (!deleteQuizTarget) return;
+    setDeletingQuiz(true);
+    try {
+      await deleteQuiz(deleteQuizTarget._id);
+      setQuizzes(prev => prev.filter(q => q._id !== deleteQuizTarget._id));
+      // Close question manager if the deleted quiz was open
+      if (qManager?._id === deleteQuizTarget._id) setQManager(null);
+      setDeleteQuizTarget(null);
+    } catch (e) {
+      alert(e.response?.data?.message || 'Failed to delete quiz');
+    } finally {
+      setDeletingQuiz(false);
+    }
   };
 
   /* called by QuestionManagerModal after any mutation */
@@ -612,13 +701,22 @@ export default function AdminPanel() {
                       </div>
 
                       {/* Right: actions */}
-                      <button
-                        className="btn btn-primary"
-                        onClick={() => setQManager(q)}
-                        style={{ whiteSpace: 'nowrap' }}
-                      >
-                        ❓ Manage Questions
-                      </button>
+                      <div style={{ display: 'flex', gap: '0.5rem', flexShrink: 0 }}>
+                        <button
+                          className="btn btn-primary"
+                          onClick={() => setQManager(q)}
+                          style={{ whiteSpace: 'nowrap' }}
+                        >
+                          ❓ Manage Questions
+                        </button>
+                        <button
+                          className="btn btn-danger btn-sm"
+                          onClick={() => setDeleteQuizTarget(q)}
+                          title="Delete this quiz and all its questions"
+                        >
+                          🗑
+                        </button>
+                      </div>
                     </div>
 
                     {/* Inline mini question preview */}
@@ -663,6 +761,16 @@ export default function AdminPanel() {
       {/* ════════════════════════════════════
           MODALS
       ════════════════════════════════════ */}
+
+      {/* Delete Quiz Confirmation Modal */}
+      {deleteQuizTarget && (
+        <DeleteQuizModal
+          quiz={deleteQuizTarget}
+          deleting={deletingQuiz}
+          onConfirm={handleDeleteQuiz}
+          onCancel={() => !deletingQuiz && setDeleteQuizTarget(null)}
+        />
+      )}
 
       {/* Question Manager Modal */}
       {qManager && (

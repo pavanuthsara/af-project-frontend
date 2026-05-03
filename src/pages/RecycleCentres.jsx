@@ -211,8 +211,12 @@ function validateCentre(payload, validWasteTypes) {
     return "Select at least one accepted waste type.";
   if (validWasteTypes.length === 0)
     return "Waste type list is unavailable. Add categories before saving.";
+  // Case-insensitive check — matches the backend WasteTypeValidationService behaviour
+  const validLower = validWasteTypes.map((t) => t.toLowerCase());
   if (
-    payload.acceptedWasteTypes.some((type) => !validWasteTypes.includes(type))
+    payload.acceptedWasteTypes.some(
+      (type) => !validLower.includes(type.toLowerCase())
+    )
   ) {
     return "Selected waste types must match the backend category names.";
   }
@@ -271,7 +275,9 @@ export default function RecycleCentres() {
 
   const loadWasteTypes = async () => {
     try {
-      const r = await getCategories({ page: 1, limit: 100 });
+      // Use paginate=false to fetch ALL categories so the validation list is
+      // never artificially truncated (fixes older-centre update bug)
+      const r = await getCategories({ paginate: false });
       const raw = r.data?.categories || r.data?.data || [];
       const names = [
         ...new Set(raw.map((category) => category?.name).filter(Boolean)),
@@ -343,17 +349,39 @@ export default function RecycleCentres() {
   };
 
   const openEdit = (centre) => {
+    const allTypes = uniqueWasteTypes(centre.acceptedWasteTypes);
+
+    // Filter out stale names — types that existed when the centre was created
+    // but have since been renamed or deleted from the category list.
+    // Without this, stale names stay silently in the form array and block
+    // validation even after the manager selects valid replacement types.
+    const validLower = wasteTypes.map((t) => t.toLowerCase());
+    const validTypes = allTypes.filter((t) =>
+      validLower.includes(t.toLowerCase())
+    );
+    const staleTypes = allTypes.filter(
+      (t) => !validLower.includes(t.toLowerCase())
+    );
+
     setCForm({
       name: centre.name || "",
       address: centre.address || "",
       location: centre.location || { type: "Point", coordinates: [0, 0] },
-      acceptedWasteTypes: uniqueWasteTypes(centre.acceptedWasteTypes),
+      acceptedWasteTypes: validTypes,
       operatingHours: centre.operatingHours || "",
       maxCapacityKg: centre.maxCapacityKg ?? "",
       currentLoadKg: centre.currentLoadKg ?? "",
     });
     setCModal(centre);
-    setErr("");
+
+    // Warn the manager if stale entries were silently removed
+    if (staleTypes.length > 0) {
+      setErr(
+        `The following waste type${staleTypes.length > 1 ? "s" : ""} stored on this centre no longer exist in the category list and have been removed: ${staleTypes.join(", ")}. Please select a replacement before saving.`
+      );
+    } else {
+      setErr("");
+    }
   };
 
   const saveCentre = async () => {
